@@ -42,46 +42,47 @@ function cropper_hide()
 
 function initialize()
 {
+    initialize_display()
+
     var data = {};
     data.api_token = api_token;
-    data.name = $('#name').val();
-    data.sku = $('#sku').val();
-    data.description = $('#description').val();
-    data.service_category_id = $('#service_category_id').val();
-    data.logo = $('#logo').val();
-    data.featured = $('#featured').val();
     data = JSON.stringify(data);
 
     var ajax = {};
-	ajax.url = url + '/api/admin/service/add';
+	ajax.url = app_url + '/admin/initialize';
 	ajax.data = data;
 	ajax.type = 'post';
 	ajax.contentType = 'application/json; charset=utf-8';
 	ajax.processData = false;
 	ajax.success = function(response)
 	{
-        loading_hide();
 		var error = response.error;
         var message = response.message;
         
-        if(error == 99)
+        if(error != 0)
         {
-            window.location.href = login_url;
+            login_display();
             return;
         }
-		
-		if(error == 1)
-		{
-			$('#result').html('<font color="FF0000">' + message + '</font>');
-			return;
-		}
-		
-        $('#result').html('<font color="008000">' + message + '</font>');
-        list();
 	}
     $.ajax(ajax);
-    
-    login_display();
+}
+
+function initialize_display()
+{
+    var html = '';
+    html += '<div id="popup_overlay" class="popup_overlay" onclick="popup_hide()"></div>';
+    html += '<div id="popup_content" class="popup_content"></div>';
+    html += '<div id="cropper_box" class="cropper_box">';
+    html += '<div id="cropper_container" class="cropper_container"></div>';
+    html += '</div>';
+    html += '<div id="cropper_footer" class="cropper_footer"></div>';
+    html += '<div id="loading_overlay" class="loading_overlay"></div>';
+    html += '<div id="loading_content" class="loading_content">';
+    html += '<div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div>';
+    html += '</div>';
+
+    $('#app').html(html);
 }
 
 function login_display()
@@ -94,12 +95,13 @@ function login_display()
     html += '<div class="login_box">';
     html += 'Admin Login';
     html += '<div class="height10"></div>';
-    html += '<input type="text" id="email" class="login_textbox" placeholder="Email">';
+    html += '<input type="text" id="email" class="login_textbox" autocomplete="off" placeholder="Email">';
     html += '<div class="height10"></div>';
     html += '<input type="password" id="password" class="login_textbox" placeholder="Password">';
     html += '<div class="height10"></div>';
     html += '<div class="login_button" onclick="login_submit()">Sign In</div>';
-    html += '<div class="login_result"></div>';
+    html += '<div class="height10"></div>';
+    html += '<div id="result" class="login_result"></div>';
     html += '</div>';
     html += '</div>';
     html += "</div>";
@@ -111,17 +113,12 @@ function login_submit()
     loading_show();
 
     var data = {};
-    data.api_token = api_token;
-    data.name = $('#name').val();
-    data.sku = $('#sku').val();
-    data.description = $('#description').val();
-    data.service_category_id = $('#service_category_id').val();
-    data.logo = $('#logo').val();
-    data.featured = $('#featured').val();
+    data.email = $('#email').val();
+    data.password = $('#password').val();
     data = JSON.stringify(data);
 
     var ajax = {};
-	ajax.url = url + '/api/admin/service/add';
+	ajax.url = app_url + '/admin/login';
 	ajax.data = data;
 	ajax.type = 'post';
 	ajax.contentType = 'application/json; charset=utf-8';
@@ -131,13 +128,7 @@ function login_submit()
         loading_hide();
 		var error = response.error;
         var message = response.message;
-        
-        if(error == 99)
-        {
-            window.location.href = login_url;
-            return;
-        }
-		
+
 		if(error == 1)
 		{
 			$('#result').html('<font color="FF0000">' + message + '</font>');
@@ -145,7 +136,6 @@ function login_submit()
 		}
 		
         $('#result').html('<font color="008000">' + message + '</font>');
-        list();
 	}
     $.ajax(ajax);
 }

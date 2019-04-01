@@ -44,4 +44,49 @@ abstract class Controller extends BaseController
         return md5(time().$random);
     }
 
+    public function check_admin($api_token)
+    {
+        $query = \DB::table('admin_tokens');
+        $query->select('admin_id');
+        $query->where('api_token', $api_token);
+        $query->where('deleted_at', 0);
+        $admin_token = $query->first();
+
+        // if admin_token not found
+        if($admin_token == null)
+        {
+            \Log::info('Admin '.$api_token.' token not found');
+
+            $response = array();
+            $response['error'] = 99;
+            $response['message'] = 'Admin token not found';
+            return $response;
+        }
+
+        // get admin
+        $query = \DB::table('admins');
+        $query->select('id', 'name', 'email');
+        $query->where('id', $admin_token->admin_id);
+        $query->where('deleted_at', 0);
+        $admin = $query->first();
+
+        // if admin not found
+        if($admin == null)
+        {
+            \Log::info('Admin '.$api_token.' not found');
+
+            $response = array();
+            $response['error'] = 99;
+            $response['message'] = 'Admin not found';
+            return $response;
+        }
+
+        // success
+        $response = array();
+        $response['error'] = 0;
+        $response['message'] = 'Success';
+        $response['admin_token'] = $admin_token;
+        $response['admin'] = $admin;
+        return $response;
+    }
 }

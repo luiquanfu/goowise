@@ -10,16 +10,22 @@ class CreateUsersTable extends Migration
         Schema::create('users', function (Blueprint $table)
         {
             $table->bigInteger('id');
-            $table->text('name');
-            $table->text('email');
-            $table->text('mobile');
-            $table->text('reason');
-            $table->text('ip_address');
-            $table->text('user_agent');
+            $table->string('name', 50);
+            $table->string('email');
+            $table->string('mobile', 15);
+            $table->string('reason');
+            $table->string('ip_address', 25);
+            $table->string('user_agent');
             $table->integer('email_at');
             $table->integer('created_at');
             $table->integer('updated_at');
             $table->integer('deleted_at');
+
+            $table->primary('id');
+            $table->index('name');
+            $table->index('email');
+            $table->index('mobile');
+            $table->index('deleted_at');
         });
     }
 
