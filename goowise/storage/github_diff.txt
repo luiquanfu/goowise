@@ -1,0 +1,6 @@
+Showing  with 927 additions and 922 deletions.
++33 −33  goowise/app/Http/Controllers/Controller.php
++137 −137  goowise/app/Http/Controllers/Website/Home.php
++13 −17  goowise/database/migrations/2014_10_12_000000_create_users_table.php
++24 −15  goowise/database/migrations/2014_10_12_100000_create_password_resets_table.php
++720 −720  goowise/resources/views/website/index.blade.php

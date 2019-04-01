@@ -11,7 +11,7 @@ Route::post('website/chat/message', 'Website\Chat@message')->middleware('website
 
 //admin
 Route::get('admin', 'Admin\Home@index');
-Route::post('admin/initialize', 'Admin\Home@initialize')->middleware('admin');
+Route::post('admin/initialize', 'Admin\Home@initialize');
 Route::post('admin/login', 'Admin\Home@login');
 Route::post('admin/logout', 'Admin\Home@logout');
 Route::post('admin/chat/index', 'Admin\Chat@index');
