@@ -3,8 +3,6 @@
 namespace App\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
-
-use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
 class Home extends Controller
@@ -18,10 +16,19 @@ class Home extends Controller
             $api_token = $_COOKIE['admin_token'];
         }
 
+        // get device_id
+        $device_id = $this->unique_id();
+        if(isset($_COOKIE['device_id']))
+        {
+            $device_id = $_COOKIE['device_id'];
+        }
+        setcookie('device_id', $device_id, time() + (60 * 60 * 24 * 365 * 1), '/');
+
         // response
         $data = array();
         $data['app_url'] = url();
         $data['api_token'] = $api_token;
+        $data['device_id'] = $device_id;
         return view('admin.index', $data);
     }
 
@@ -51,12 +58,32 @@ class Home extends Controller
         // set variables
         $email = $request->get('email');
         $password = $request->get('password');
+        $device_id = $request->get('device_id');
+        $device_type = $request->get('device_type');
 
-        \Log::info('Admin login '.$email);
+        \Log::info('Admin login '.$device_type.' '.$email);
+
+        // validate device_id
+        if(strlen($device_id) == 0)
+        {
+            $response = array();
+            $response['error'] = 1;
+            $response['message'] = 'Device ID is invalid';
+            return $response;
+        }
+
+        // validate device_type
+        if(strlen($device_type) == 0)
+        {
+            $response = array();
+            $response['error'] = 1;
+            $response['message'] = 'Device type is invalid';
+            return $response;
+        }
 
         // get admin
         $query = \DB::table('admins');
-        $query->select('id', 'password');
+        $query->select('id', 'name', 'password');
         $query->where('email', $email);
         $query->where('deleted_at', 0);
         $admin = $query->first();
@@ -79,10 +106,41 @@ class Home extends Controller
             return $response;
         }
 
+        // get admin_token
+        $query = \DB::table('admin_tokens');
+        $query->select('id', 'api_token');
+        $query->where('admin_id', $admin->id);
+        $query->where('device_id', $device_id);
+        $query->where('deleted_at', 0);
+        $admin_token = $query->first();
+
+        // if admin_token not found
+        if($admin_token == null)
+        {
+            // create admin_token
+            $admin_token = (object)[];
+            $admin_token->id = $this->unique_id();
+            $admin_token->admin_id = $admin->id;
+            $admin_token->device_id = $device_id;
+            $admin_token->device_type = $device_type;
+            $admin_token->ip_address = $this->ip_address();
+            $admin_token->user_agent = $this->user_agent();
+            $admin_token->api_token = $this->unique_token();
+            $admin_token->created_at = time();
+            $admin_token->updated_at = time();
+            \DB::table('admin_tokens')->insert($this->fields($admin_token));
+        }
+
+        setcookie('admin_token', $admin_token->api_token, time() + (60 * 60 * 24 * 365 * 1), '/');
+
+        // modify admin
+        $admin->api_token = $admin_token->api_token;
+
         // success
         $response = array();
         $response['error'] = 0;
         $response['message'] = 'Success';
+        $response['admin'] = $admin;
         return $response;
     }
 }

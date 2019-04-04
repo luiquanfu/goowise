@@ -46,6 +46,7 @@ abstract class Controller extends BaseController
 
     public function check_admin($api_token)
     {
+        // get admin_token
         $query = \DB::table('admin_tokens');
         $query->select('admin_id');
         $query->where('api_token', $api_token);
@@ -88,5 +89,15 @@ abstract class Controller extends BaseController
         $response['admin_token'] = $admin_token;
         $response['admin'] = $admin;
         return $response;
+    }
+
+    function fields($object)
+    {
+        $fields = array();
+        foreach($object as $key => $value)
+        {
+            $fields[$key] = $value;
+        }
+        return $fields;
     }
 }

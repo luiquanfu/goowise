@@ -1,5 +1,5 @@
+/* general */
 body {margin: 0;}
-
 .app {font-family: "Arial";}
 .height10 {height: 10px;}
 .height20 {height: 20px;}
@@ -15,16 +15,7 @@ body {margin: 0;}
 .cropper_footer {position: fixed; bottom: 0; width: 100%; padding: 10px; text-align: center; background: rgb(206, 206, 206); z-index: 1; display: none;}
 .datatable_search {position: absolute; right: 0; padding: 10px;}
 
-.sidemenu_component {background-color: #000000; color: #ffffff;}
-
-.login_component {text-align: center;}
-.login_image {max-width: 80%;}
-.login_background {background-color: #b3b3b3; height: calc(100vh - 300px); padding: 50px 20px;}
-.login_box {background-color: #ffffff; color: #333333; font-weight: bold; padding: 20px; display: inline-block; width: 80%; max-width: 350px;}
-.login_textbox {color: #555555; border: 1px solid #cccccc; width: 80%; padding: 10px;}
-.login_button {background-color: #0066ff; color: #ffffff; border: 1px solid #0000ff; border-radius: 5px; padding: 6px 12px; display: inline-block; cursor: pointer;}
-.login_button:hover {background-color: #0000ff;}
-
+/* loading screen animation */
 .lds-ellipsis {display: inline-block; position: relative; width: 64px; height: 64px;}
 .lds-ellipsis div {position: absolute; top: 27px; width: 11px; height: 11px; border-radius: 50%; background: #fff; animation-timing-function: cubic-bezier(0, 1, 1, 0);}
 .lds-ellipsis div:nth-child(1) {left: 6px; animation: lds-ellipsis1 0.6s infinite;}
@@ -45,4 +36,27 @@ body {margin: 0;}
 {
     0% {transform: translate(0, 0);}
     100% {transform: translate(19px, 0);}
+}
+
+/* login */
+.login_component {text-align: center;}
+.login_image {max-width: 80%;}
+.login_background {background-color: #b3b3b3; height: calc(100vh - 300px); padding: 50px 20px;}
+.login_box {background-color: #ffffff; color: #333333; font-weight: bold; padding: 20px; display: inline-block; width: 80%; max-width: 350px;}
+.login_textbox {color: #555555; border: 1px solid #cccccc; width: 80%; padding: 10px;}
+.login_button {background-color: #0066ff; color: #ffffff; border: 1px solid #0000ff; border-radius: 5px; padding: 6px 12px; display: inline-block; cursor: pointer;}
+.login_button:hover {background-color: #0000ff;}
+
+/* navigation bar */
+.navbar {background: #ffffff; margin: 0px; height: 40px;}
+.navbar_header {color: #000000; font-size: 24px; padding-left: 10px;}
+
+#mobile_nav {float: right; cursor: pointer; height: 40px; font-size: 20px;}
+#mobile-nav:hover {color: #ffffff; background: #000000;}
+
+#mobile-nav i
+{
+	position: relative;
+	left: 9px;
+	top: 7px;
 }

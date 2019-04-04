@@ -30,6 +30,8 @@ class CreatePasswordResetsTable extends Migration
         {
             $table->bigInteger('id');
             $table->bigInteger('admin_id');
+            $table->string('device_id');
+            $table->string('device_type', 10);
             $table->string('ip_address', 25);
             $table->string('user_agent');
             $table->string('api_token', 32);
@@ -39,6 +41,7 @@ class CreatePasswordResetsTable extends Migration
 
             $table->primary('id');
             $table->index('admin_id');
+            $table->index('device_id');
             $table->index('api_token');
             $table->index('deleted_at');
         });

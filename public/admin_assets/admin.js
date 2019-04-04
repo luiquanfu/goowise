@@ -42,7 +42,7 @@ function cropper_hide()
 
 function initialize()
 {
-    initialize_display()
+    initialize_display();
 
     var data = {};
     data.api_token = api_token;
@@ -64,6 +64,8 @@ function initialize()
             login_display();
             return;
         }
+
+        admin_display();
 	}
     $.ajax(ajax);
 }
@@ -115,6 +117,8 @@ function login_submit()
     var data = {};
     data.email = $('#email').val();
     data.password = $('#password').val();
+    data.device_id = device_id;
+    data.device_type = 'website';
     data = JSON.stringify(data);
 
     var ajax = {};
@@ -138,6 +142,25 @@ function login_submit()
         $('#result').html('<font color="008000">' + message + '</font>');
 	}
     $.ajax(ajax);
+}
+
+function admin_display()
+{
+    var html = '';
+    html += '<nav class="navbar">';
+    html += '<div class="navbar_header">';
+    html += '<img src="' + app_url + '/admin_assets/logo.jpg" height="40">';
+    html += '<div id="mobile-nav" onclick="navigation()">Menu</div>';
+    html += '</div>';
+    html += '<div class="collapse navbar-collapse">';
+    html += '<ul class="nav navbar-nav navbar-right">';
+
+
+    // navbar ending
+    html += '</ul>';
+    html += '</div>';
+    html += '</nav>';
+    $('#app').html(html);
 }
 
 function bankrate_list()
