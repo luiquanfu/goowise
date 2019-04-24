@@ -1,5 +1,18 @@
 initialize();
 
+function navigation()
+{
+    if($('#sidebar_component').width() == 0)
+    {
+        $('#sidebar_background').show();
+    }
+    if($('#sidebar_component').width() != 0)
+    {
+        $('#sidebar_background').hide();
+    }
+    $('#sidebar_component').toggleClass('active');
+}
+
 function popup_show(html)
 {
     $('#popup_content').html(html);
@@ -135,7 +148,7 @@ function login_submit()
 
 		if(error == 1)
 		{
-			$('#result').html('<font color="FF0000">' + message + '</font>');
+			$('#result').html('<font color="ff0000">' + message + '</font>');
 			return;
 		}
 		
@@ -147,20 +160,39 @@ function login_submit()
 function admin_display()
 {
     var html = '';
-    html += '<nav class="navbar">';
-    html += '<div class="navbar_header">';
-    html += '<img src="' + app_url + '/admin_assets/logo.jpg" height="40">';
-    html += '<div id="mobile-nav" onclick="navigation()">Menu</div>';
-    html += '</div>';
-    html += '<div class="collapse navbar-collapse">';
-    html += '<ul class="nav navbar-nav navbar-right">';
 
-
-    // navbar ending
-    html += '</ul>';
+    // navigation bar
+    html += '<div id="topbar_component">';
+    html += '<div id="topbar_title">Goowise Advisory</div>';
+    html += '<div id="topbar_menu" onclick="navigation()">Menu</div>';
     html += '</div>';
-    html += '</nav>';
+
+    // sidemenu bar
+    html += '<div id="sidebar_component" class="sidebar_component">';
+    html += '<div id="sidebar_link">Overview</div>';
+    html += '<div id="sidebar_link">Update Bank Rates</div>';
+    html += '<div id="sidebar_link">Logout</div>';
+    html += '</div>';
+    html += '<div id="sidebar_background" onclick="navigation()"></div>';
+
+    // content
+    html += '<div id="content">';
+    html += '<h1>Bank Rates are always going to change</h1>';
+    html += '<h1>Bank Rates</h1>';
+    html += '<select id="choice" class="choice">';
+    html += '<option>Test 1</option>';
+    html += '<option>Test 2</option>';
+    html += '<option>Test 3</option>';
+    html += '<option>Test 4</option>';
+    html += '<option>Test 5</option>';
+    html += '<option>Test 6</option>';
+    html += '<option>Test 7</option>';
+    html += '</select>';
+
+    html += '</div>';
     $('#app').html(html);
+
+    $('#choice').select2();
 }
 
 function bankrate_list()

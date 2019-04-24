@@ -11,8 +11,8 @@ class Github extends Controller
 {
     public function index()
     {
-        $local_path = 'C:\xampp\htdocs\goowise';
-        $server_path = 'C:\xampp\htdocs\goowise_www';
+        $local_path = 'D:\xampp\htdocs\goowise';
+        $server_path = 'D:\xampp\htdocs\goowise_www';
 
         // delete everything inside server_path
         if(is_dir($server_path))
