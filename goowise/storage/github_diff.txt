@@ -1,6 +1,43 @@
-Showing  with 927 additions and 922 deletions.
-+33 −33  goowise/app/Http/Controllers/Controller.php
-+137 −137  goowise/app/Http/Controllers/Website/Home.php
-+13 −17  goowise/database/migrations/2014_10_12_000000_create_users_table.php
-+24 −15  goowise/database/migrations/2014_10_12_100000_create_password_resets_table.php
-+720 −720  goowise/resources/views/website/index.blade.php
+Showing  with 27,153 additions and 5,937 deletions.
++21 −0  goowise/app/Console/Commands/Github.php
++1 −11  goowise/app/Console/Kernel.php
++146 −0  goowise/app/Http/Controllers/Admin/Home.php
++79 −0  goowise/app/Http/Controllers/Console/Github.php
++89 −33  goowise/app/Http/Controllers/Controller.php
++137 −139  goowise/app/Http/Controllers/Website/Home.php
++9 −9  goowise/app/Http/Kernel.php
++1 −1  goowise/app/Http/routes.php
++20 −18  goowise/database/migrations/2014_10_12_000000_create_users_table.php
++39 −15  goowise/database/migrations/2014_10_12_100000_create_password_resets_table.php
++35 −0  goowise/database/migrations/2019_04_01_153634_insert_admins.php
++19 −0  goowise/resources/views/admin/index.blade.php
++721 −720  goowise/resources/views/website/index.blade.php
++6 −0  goowise/storage/github_diff.txt
++1 −2,492  goowise/vendor/composer/autoload_classmap.php
++1 −2,492  goowise/vendor/composer/autoload_static.php
++62 −0  public/admin_assets/admin.css
++175 −0  public/admin_assets/admin.js
++3,719 −0  public/admin_assets/bootstrap-4.3.1-dist/css/bootstrap-grid.css
++1 −0  public/admin_assets/bootstrap-4.3.1-dist/css/bootstrap-grid.css.map
++7 −0  public/admin_assets/bootstrap-4.3.1-dist/css/bootstrap-grid.min.css
++1 −0  public/admin_assets/bootstrap-4.3.1-dist/css/bootstrap-grid.min.css.map
++331 −0  public/admin_assets/bootstrap-4.3.1-dist/css/bootstrap-reboot.css
++1 −0  public/admin_assets/bootstrap-4.3.1-dist/css/bootstrap-reboot.css.map
++8 −0  public/admin_assets/bootstrap-4.3.1-dist/css/bootstrap-reboot.min.css
++1 −0  public/admin_assets/bootstrap-4.3.1-dist/css/bootstrap-reboot.min.css.map
++10,038 −0  public/admin_assets/bootstrap-4.3.1-dist/css/bootstrap.css
++1 −0  public/admin_assets/bootstrap-4.3.1-dist/css/bootstrap.css.map
++7 −0  public/admin_assets/bootstrap-4.3.1-dist/css/bootstrap.min.css
++1 −0  public/admin_assets/bootstrap-4.3.1-dist/css/bootstrap.min.css.map
++7,013 −0  public/admin_assets/bootstrap-4.3.1-dist/js/bootstrap.bundle.js
++1 −0  public/admin_assets/bootstrap-4.3.1-dist/js/bootstrap.bundle.js.map
++7 −0  public/admin_assets/bootstrap-4.3.1-dist/js/bootstrap.bundle.min.js
++1 −0  public/admin_assets/bootstrap-4.3.1-dist/js/bootstrap.bundle.min.js.map
++4,435 −0  public/admin_assets/bootstrap-4.3.1-dist/js/bootstrap.js
++1 −0  public/admin_assets/bootstrap-4.3.1-dist/js/bootstrap.js.map
++7 −0  public/admin_assets/bootstrap-4.3.1-dist/js/bootstrap.min.js
++1 −0  public/admin_assets/bootstrap-4.3.1-dist/js/bootstrap.min.js.map
++2 −0  public/admin_assets/jquery-3.3.1.min.js
+BIN  public/admin_assets/logo.ico
+BIN  public/admin_assets/logo.jpg
++7 −7  public/website_assets/js/custom.js

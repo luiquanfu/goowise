@@ -32,12 +32,17 @@ class Github extends Controller
             }
 
             // set variables
+            $index_filename = 3;
             $line = trim($lines[$i]);
-			$words = explode(' ', $line);
-            $filename = trim($words[3]);
+            $words = explode(' ', $line);
+            if($words[0] == 'BIN')
+            {
+                $index_filename = 2;
+            }
+            $filename = trim($words[$index_filename]);
 			$from = $local_path.'/'.$filename;
             $to = $server_path.'/'.$filename;
-            \Log::debug($from);
+            \Log::info($from);
 
 			// ignore env file
 			if(strpos($filename, '.env') !== false)
