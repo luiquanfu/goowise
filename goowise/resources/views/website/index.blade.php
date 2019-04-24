@@ -61,7 +61,8 @@
 
 <!-- navigation menu start -->
 <section id="aa-menu-area">
-<nav class="navbar navbar-default main-navbar" role="navigation">  
+<!-- <nav class="navbar navbar-default main-navbar" role="navigation"> -->
+<nav class="navbar navbar-default main-navbar navbar-fixed-top" role="navigation">
 <div class="container">
 <div class="navbar-header">
 <!-- FOR MOBILE VIEW COLLAPSED BUTTON -->
@@ -130,7 +131,7 @@
 </section>
 
 <!-- Advance Search -->
-<section id="aa-advance-search">
+<section id="aa-advance-search" style="display: none;">
 <div class="container">
 <div class="aa-advance-search-area">
 <div class="form">

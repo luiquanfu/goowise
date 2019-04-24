@@ -34,14 +34,14 @@ jQuery(function($){
   /* ----------------------------------------------------------- */
     
     
-  jQuery(window).bind('scroll', function () {
-    if (jQuery(window).scrollTop() > 200) {
-        jQuery('.main-navbar').addClass('navbar-fixed-top');
+  // jQuery(window).bind('scroll', function () {
+  //   if (jQuery(window).scrollTop() > 200) {
+  //       jQuery('.main-navbar').addClass('navbar-fixed-top');
         
-      } else {
-          jQuery('.main-navbar').removeClass('navbar-fixed-top');          
-      }
-  });
+  //     } else {
+  //         jQuery('.main-navbar').removeClass('navbar-fixed-top');          
+  //     }
+  // });
   
   /* ----------------------------------------------------------- */
   /*  2. AGENTS SLIDER
