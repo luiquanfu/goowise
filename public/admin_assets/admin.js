@@ -1,18 +1,5 @@
 initialize();
 
-function navigation()
-{
-    if($('#sidebar_component').width() == 0)
-    {
-        $('#sidebar_background').show();
-    }
-    if($('#sidebar_component').width() != 0)
-    {
-        $('#sidebar_background').hide();
-    }
-    $('#sidebar_component').toggleClass('active');
-}
-
 function popup_show(html)
 {
     $('#popup_content').html(html);
