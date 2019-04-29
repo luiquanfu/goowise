@@ -15,6 +15,7 @@ class Home extends Controller
         {
             $api_token = $_COOKIE['admin_token'];
         }
+        \Log::info('Admin '.$api_token.' home');
 
         // get device_id
         $device_id = $this->unique_id();
@@ -36,7 +37,6 @@ class Home extends Controller
     {
         // set variables
         $api_token = $request->get('api_token');
-
         \Log::info('Admin '.$api_token.' initialize');
 
         // validate api_token
@@ -60,7 +60,6 @@ class Home extends Controller
         $password = $request->get('password');
         $device_id = $request->get('device_id');
         $device_type = $request->get('device_type');
-
         \Log::info('Admin login '.$device_type.' '.$email);
 
         // validate device_id
@@ -141,6 +140,25 @@ class Home extends Controller
         $response['error'] = 0;
         $response['message'] = 'Success';
         $response['admin'] = $admin;
+        return $response;
+    }
+
+    public function logout(Request $request)
+    {
+        // set variables
+        $api_token = $request->get('api_token');
+        \Log::info('Admin '.$api_token.' logout');
+
+        // update admin_token
+        $data = array();
+        $data['deleted_at'] = time();
+        \DB::table('admin_tokens')->where('api_token', $api_token)->update($data);
+        setcookie('admin_token', null, time() - 1, '/');
+
+        // success
+        $response = array();
+        $response['error'] = 0;
+        $response['message'] = 'Success';
         return $response;
     }
 }
