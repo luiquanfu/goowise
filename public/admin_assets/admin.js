@@ -63,7 +63,7 @@ function initialize()
         }
 
         initialize_display();
-        admin_display();
+        bank_loan_index();
 	}
     $.ajax(ajax);
 }
@@ -104,9 +104,11 @@ function initialize_display()
     html += '<section class="sidebar">';
     html += '<ul class="sidebar-menu" data-widget="tree">';
     html += '<li><a href="#" onclick="admin_display()"><i class="fa fa-dashboard"></i> <span>Dashboard</span></a></li>';
-    html += '<li><a href="#" onclick="bankrate_list()"><i class="fa fa-th"></i> <span>Update Bank Rates</span></a></li>';
-    html += '<li><a href="#" onclick="logout()"><i class="fa fa-power-off"></i> <span>Logout</span></a></li>';
+    html += '<li><a href="#" onclick="rate_index()"><i class="fa fa-object-group"></i> <span>Rate</span></a></li>';
+    html += '<li><a href="#" onclick="bank_index()"><i class="fa fa-bank"></i> <span>Bank</span></a></li>';
+    html += '<li><a href="#" onclick="bank_loan_index()"><i class="fa fa-th"></i> <span>Bank Loans</span></a></li>';
     html += '<li><a href="#" onclick="testing()"><i class="fa fa-fire"></i> <span>Testing</span></a></li>';
+    html += '<li><a href="#" onclick="logout()"><i class="fa fa-power-off"></i> <span>Logout</span></a></li>';
     html += '</ul>';
     html += '</section>';
     html += '</aside>';
@@ -124,11 +126,11 @@ function initialize_display()
 
     $('#app').html(html);
 
-    var body_height = $(window).height();
+    var document_height = $(document).height();
     var header_height = $('#header').outerHeight();
-    var footer_height = $('#footer').outerHeight();
     var content_height = $('#content').outerHeight();
-    var minimum_height = body_height - header_height - footer_height;
+    var footer_height = $('#footer').outerHeight();
+    var minimum_height = document_height - header_height - footer_height;
     if(content_height < minimum_height) $('#content').height(minimum_height);
 }
 
@@ -192,7 +194,10 @@ function login_submit()
 			$('#result').html('<div class="text-red">' + message + '</div>');
 			return;
 		}
-		
+        
+        var admin = response.admin;
+        api_token = admin.api_token;
+        
         $('#result').html('<div class="text-green">' + message + '</div>');
         initialize_display();
         admin_display();
@@ -298,49 +303,603 @@ function admin_display()
     $('#content').html(html);
 }
 
-function bankrate_list()
+function rate_index()
+{
+    app_data = {};
+    app_data.page = 1;
+    app_data.sort = 'name';
+    app_data.direction = 'asc';
+    app_data.filter_name = '';
+    rate_list();
+}
+
+function rate_list()
+{
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.page = app_data.page;
+    data.sort = app_data.sort;
+    data.direction = app_data.direction;
+    data.filter_name = app_data.filter_name;
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/rate/list';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+
+        var rates = response.rates;
+        var html = '';
+
+        // header
+        html += '<section class="content-header">';
+        html += '<h1>';
+        html += 'Rate Management';
+        html += '<small>Listing of all Rates</small>';
+        html += '</h1>';
+        html += '</section>';
+
+        // filter rates
+        html += '<section class="content">';
+        html += '<div class="row">';
+        html += '<div class="col-md-12">';
+        html += '<div class="box box-primary">';
+        html += '<div class="box-header with-border">';
+        html += '<h3 class="box-title">Filters</h3>';
+        html += '</div>';
+        html += '<div class="box-body">';
+        html += '<div class="form-group">';
+        html += '<label>Rate Name</label>';
+        html += '<input id="filter_name" type="text" class="form-control" value="' + app_data.filter_name + '">';
+        html += '</div>';
+        html += '</div>';
+        html += '<div class="box-footer">';
+        html += '<div class="btn btn-primary" onclick="rate_filter()">Filter</button>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</section>';
+
+        // create rates
+        html += '<div class="row">';
+        html += '<div class="col-md-12">';
+        html += '<div class="width15"></div>';
+        html += '<div class="btn btn-success" onclick="rate_create()">Create Rate</div>';
+        html += '</div>';
+        html += '</div>';
+
+        // list rates
+        html += '<section class="content">';
+        html += '<div class="row">';
+        html += '<div class="col-xs-12">';
+        html += '<div class="box box-primary">';
+        html += '<div class="box-header">';
+        html += '<h3 class="box-title">Rate List</h3>';
+        html += '</div>';
+        html += '<div class="box-body table-responsive no-padding">';
+        html += '<table class="table table-hover">';
+        html += '<tr>';
+        html += '<th onclick="rate_sorting(\'name\')">Name</th>';
+        html += '<th onclick="rate_sorting(\'interest\')">Interest</th>';
+        html += '<th>Actions</th>';
+        html += '</tr>';
+        for(i in rates)
+        {
+            var rate = rates[i];
+
+            html += '<tr>';
+            html += '<td>' + rate.name + '</td>';
+            html += '<td>' + rate.interest + '</td>';
+            html += '<td>';
+            html += '<div class="btn btn-primary" onclick="rate_edit(\'' + rate.id + '\')"><i class="fa fa-edit"></i></div>';
+            html += '<div class="width5"></div>';
+            html += '<div class="btn btn-danger" onclick="rate_remove(\'' + rate.id + '\')"><i class="fa fa-trash"></i></div>';
+            html += '</td>';
+            html += '</tr>';
+        }
+        html += '</table>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</section>';
+        $('#content').html(html);
+	}
+    $.ajax(ajax);
+}
+
+function rate_filter()
+{
+    app_data.filter_name = $('#filter_name').val();
+    app_data.page = 1;
+    rate_list();
+}
+
+function rate_paging(page)
+{
+    app_data.page = page;
+    rate_list();
+}
+
+function rate_sorting(sort)
+{
+    if(sort == app_data.sort)
+    {
+        if(app_data.direction == 'asc')
+        {
+            app_data.direction = 'desc';
+        }
+        else
+        {
+            app_data.direction = 'asc';
+        }
+    }
+    if(sort != app_data.sort)
+    {
+        app_data.sort = sort;
+        app_data.direction = 'asc';
+    }
+    rate_list();
+}
+
+function rate_create()
+{
+    var html = '';
+
+    // start
+    html += '<section class="content">';
+    html += '<div class="row">';
+    html += '<div class="col-md-12">';
+    html += '<div class="box box-primary">';
+    html += '<div class="box-header with-border">';
+    html += '<h3 class="box-title">Add Rate</h3>';
+    html += '</div>';
+    html += '<div class="box-body">';
+
+    // name
+    html += '<div class="form-group">';
+    html += '<label>Rate Name</label>';
+    html += '<input id="name" type="text" class="form-control">';
+    html += '</div>';
+
+    // interest
+    html += '<div class="form-group">';
+    html += '<label>Interest</label>';
+    html += '<input id="interest" type="text" class="form-control">';
+    html += '</div>';
+
+    // end
+    html += '</div>';
+    html += '<div class="box-footer">';
+    html += '<div class="btn btn-success" onclick="rate_add()">Add Rate</button>';
+    html += '</div>';
+    html += '<div id="result"></div>';
+    html += '</div>';
+    html += '</div>';
+    html += '</div>';
+    html += '</section>';
+
+    $('#content').html(html);
+}
+
+function rate_add()
+{
+    $('#result').html('<span class="text-light-blue">Please wait...</span>');
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.bank_id = $('#bank_id').val();
+    data.name = $('#name').val();
+    data.interest = $('#interest').val();
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/rate/add';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        var message = response.message;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+
+        if(error != 0)
+        {
+            $('#result').html('<span class="text-red">' + message + '</span>');
+            return;
+        }
+        $('#result').html('<span class="text-green">' + message + '</span>');
+        rate_list();
+	}
+    $.ajax(ajax);
+}
+
+function rate_edit(rate_id)
+{
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.rate_id = rate_id;
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/rate/edit';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        var message = response.message;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+		
+		if(error != 0)
+		{
+			$('#content').html(message);
+			return;
+		}
+		
+        var banks = response.banks;
+        var rate = response.rate;
+        var html = '';
+
+        // start
+        html += '<section class="content">';
+        html += '<div class="row">';
+        html += '<div class="col-md-12">';
+        html += '<div class="box box-primary">';
+        html += '<div class="box-header with-border">';
+        html += '<h3 class="box-title">Edit Rate</h3>';
+        html += '</div>';
+        html += '<div class="box-body">';
+
+        // id
+        html += '<input id="rate_id" type="hidden" value="' + rate.id + '">';
+
+        // name
+        html += '<div class="form-group">';
+        html += '<label>Rate Name</label>';
+        html += '<input id="name" type="text" class="form-control" value="' + rate.name + '">';
+        html += '</div>';
+
+        // interest
+        html += '<div class="form-group">';
+        html += '<label>Interest</label>';
+        html += '<input id="interest" type="text" class="form-control" value="' + rate.interest + '">';
+        html += '</div>';
+
+        // end
+        html += '</div>';
+        html += '<div class="box-footer">';
+        html += '<div class="btn btn-primary" onclick="rate_update()">Update Rate</button>';
+        html += '</div>';
+        html += '<div id="result"></div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</section>';
+
+        $('#content').html(html);
+	}
+    $.ajax(ajax);
+}
+
+function rate_update()
+{
+    $('#result').html('<span class="text-light-blue">Please wait...</span>');
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.rate_id = $('#rate_id').val();
+    data.name = $('#name').val();
+    data.interest = $('#interest').val();
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/rate/update';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        var message = response.message;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+		
+		if(error == 1)
+		{
+			$('#result').html('<span class="text-red">' + message + '</span>');
+			return;
+		}
+		
+        $('#result').html('<span class="text-green">' + message + '</span>');
+        rate_list();
+	}
+    $.ajax(ajax);
+}
+
+function rate_remove(rate_id)
+{
+    var html = '';
+    html += '<div class="box box-danger">';
+    html += '<div class="box-header with-border">';
+    html += '<h3 class="box-title">Click Confirm to Delete</h3>';
+    html += '</div>';
+    html += '<div class="box-body">';
+    html += '<div class="btn btn-secondary" onclick="popup_hide()">Cancel</div>';
+    html += '<div class="width5"></div>';
+    html += '<div class="btn btn-danger" onclick="rate_destroy(\'' + rate_id + '\')">Confirm</div>';
+    html += '<div id="result"></div>';
+    html += '</div>';
+    html += '</div>';
+    popup_show(html);
+}
+
+function rate_destroy(rate_id)
+{
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.rate_id = rate_id;
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/rate/destroy';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        var message = response.message;
+        
+        if(error == 99)
+        {
+            window.location.href = login_url;
+            return;
+        }
+		
+		if(error == 1)
+		{
+			$('#result').html('<span class="text-red">' + message + '</span>');
+			return;
+		}
+		
+        $('#result').html('<span class="text-green">' + message + '</span>');
+
+        popup_hide();
+        rate_list();
+	}
+    $.ajax(ajax);
+}
+
+function bank_index()
+{
+    app_data = {};
+    app_data.page = 1;
+    app_data.sort = 'name';
+    app_data.direction = 'asc';
+    app_data.filter_name = '';
+    bank_list();
+}
+
+function bank_list()
+{
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.page = app_data.page;
+    data.sort = app_data.sort;
+    data.direction = app_data.direction;
+    data.filter_name = app_data.filter_name;
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/bank/list';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+
+        var banks = response.banks;
+        var html = '';
+
+        // header
+        html += '<section class="content-header">';
+        html += '<h1>';
+        html += 'Bank Management';
+        html += '<small>Listing of all banks</small>';
+        html += '</h1>';
+        html += '</section>';
+
+        // filter banks
+        html += '<section class="content">';
+        html += '<div class="row">';
+        html += '<div class="col-md-12">';
+        html += '<div class="box box-primary">';
+        html += '<div class="box-header with-border">';
+        html += '<h3 class="box-title">Filters</h3>';
+        html += '</div>';
+        html += '<div class="box-body">';
+        html += '<div class="form-group">';
+        html += '<label>Bank Name</label>';
+        html += '<input id="filter_name" type="text" class="form-control" value="' + app_data.filter_name + '">';
+        html += '</div>';
+        html += '</div>';
+        html += '<div class="box-footer">';
+        html += '<div class="btn btn-primary" onclick="bank_filter()">Filter</button>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</section>';
+
+        // create banks
+        html += '<div class="row">';
+        html += '<div class="col-md-12">';
+        html += '<div class="width15"></div>';
+        html += '<div class="btn btn-success" onclick="bank_create()">Create Bank</div>';
+        html += '</div>';
+        html += '</div>';
+
+        // list banks
+        html += '<section class="content">';
+        html += '<div class="row">';
+        html += '<div class="col-xs-12">';
+        html += '<div class="box box-primary">';
+        html += '<div class="box-header">';
+        html += '<h3 class="box-title">Bank List</h3>';
+        html += '</div>';
+        html += '<div class="box-body table-responsive no-padding">';
+        html += '<table class="table table-hover">';
+        html += '<tr>';
+        html += '<th onclick="bank_sorting(\'id\')">ID</th>';
+        html += '<th onclick="bank_sorting(\'name\')">Name</th>';
+        html += '<th>Actions</th>';
+        html += '</tr>';
+        for(i in banks)
+        {
+            var bank = banks[i];
+
+            html += '<tr>';
+            html += '<td>' + bank.id + '</td>';
+            html += '<td>' + bank.name + '</td>';
+            html += '<td>';
+            html += '<div class="btn btn-primary" onclick="bank_edit(\'' + bank.id + '\')"><i class="fa fa-edit"></i></div>';
+            html += '<div class="width5"></div>';
+            html += '<div class="btn btn-danger" onclick="bank_remove(\'' + bank.id + '\')"><i class="fa fa-trash"></i></div>';
+            html += '</td>';
+            html += '</tr>';
+        }
+        html += '</table>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</section>';
+        $('#content').html(html);
+	}
+    $.ajax(ajax);
+}
+
+function bank_filter()
+{
+    app_data.name = $('#filter_name').val();
+    app_data.page = 1;
+    bank_list();
+}
+
+function bank_paging(page)
+{
+    app_data.page = page;
+    bank_list();
+}
+
+function bank_sorting(sort)
+{
+    if(sort == app_data.sort)
+    {
+        if(app_data.direction == 'asc')
+        {
+            app_data.direction = 'desc';
+        }
+        else
+        {
+            app_data.direction = 'asc';
+        }
+    }
+    if(sort != app_data.sort)
+    {
+        app_data.sort = sort;
+        app_data.direction = 'asc';
+    }
+    bank_list();
+}
+
+function bank_create()
 {
     var html = '';
 
     // header
     html += '<section class="content-header">';
     html += '<h1>';
-    html += 'Dashboard';
-    html += '<small>summary of all bank rates</small>';
+    html += 'Create Bank';
+    html += '<small>add a new bank</small>';
     html += '</h1>';
     html += '</section>';
 
-    // content
+    // create bank
     html += '<section class="content">';
     html += '<div class="row">';
     html += '<div class="col-md-12">';
     html += '<div class="box box-primary">';
     html += '<div class="box-header with-border">';
-    html += '<h3 class="box-title">Quick Example</h3>';
+    html += '<h3 class="box-title">Create Bank</h3>';
     html += '</div>';
     html += '<div class="box-body">';
     html += '<div class="form-group">';
-    html += '<label for="exampleInputEmail1">Email address</label>';
-    html += '<input type="email" class="form-control" id="exampleInputEmail1" placeholder="Enter email">';
-    html += '</div>';
-    html += '<div class="form-group">';
-    html += '<label for="exampleInputPassword1">Password</label>';
-    html += '<input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">';
-    html += '</div>';
-    html += '<div class="form-group">';
-    html += '<label for="exampleInputFile">File input</label>';
-    html += '<input type="file" id="exampleInputFile">';
-    html += '<p class="help-block">Example block-level help text here.</p>';
-    html += '</div>';
-    html += '<div class="checkbox">';
-    html += '<label>';
-    html += '<input type="checkbox"> Check me out';
-    html += '</label>';
+    html += '<label>Bank Name</label>';
+    html += '<input id="name" type="text" class="form-control">';
     html += '</div>';
     html += '</div>';
     html += '<div class="box-footer">';
-    html += '<button type="submit" class="btn btn-primary">Submit</button>';
+    html += '<div class="btn btn-success" onclick="bank_add()">Create Bank</button>';
     html += '</div>';
+    html += '<div id="result"></div>';
     html += '</div>';
     html += '</div>';
     html += '</div>';
@@ -348,7 +907,972 @@ function bankrate_list()
     $('#content').html(html);
 }
 
-function bankrate_create()
+function bank_add()
 {
+    loading_show();
+    $('#result').html('<span class="text-light-blue">Please wait...</span>');
 
+    var data = {};
+    data.api_token = api_token;
+    data.name = $('#name').val();
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/bank/add';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+		var message = response.message;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+
+        if(error != 0)
+        {
+            $('#result').html('<span class="text-red">' + message + '</span>');
+            return;
+        }
+        $('#result').html('<span class="text-green">' + message + '</span>');
+        bank_list();
+	}
+    $.ajax(ajax);
+}
+
+function bank_edit(bank_id)
+{
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.bank_id = bank_id;
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/bank/edit';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        var message = response.message;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+		
+		if(error != 0)
+		{
+			$('#content').html(message);
+			return;
+		}
+		
+        var bank = response.bank;
+        var html = '';
+
+        // start
+        html += '<section class="content">';
+        html += '<div class="row">';
+        html += '<div class="col-md-12">';
+        html += '<div class="box box-primary">';
+        html += '<div class="box-header with-border">';
+        html += '<h3 class="box-title">Edit Bank</h3>';
+        html += '</div>';
+        html += '<div class="box-body">';
+
+        // id
+        html += '<input id="bank_id" type="hidden" value="' + bank.id + '">';
+
+        // name
+        html += '<div class="form-group">';
+        html += '<label>Bank Name</label>';
+        html += '<input id="name" type="text" class="form-control" value="' + bank.name + '">';
+        html += '</div>';
+
+        // end
+        html += '</div>';
+        html += '<div class="box-footer">';
+        html += '<div class="btn btn-primary" onclick="bank_update()">Update Bank</button>';
+        html += '</div>';
+        html += '<div id="result"></div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</section>';
+
+        $('#content').html(html);
+	}
+    $.ajax(ajax);
+}
+
+function bank_update()
+{
+    $('#result').html('<span class="text-light-blue">Please wait...</span>');
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.bank_id = $('#bank_id').val();
+    data.name = $('#name').val();
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/bank/update';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        var message = response.message;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+		
+		if(error == 1)
+		{
+			$('#result').html('<span class="text-red">' + message + '</span>');
+			return;
+		}
+		
+        $('#result').html('<span class="text-green">' + message + '</span>');
+        bank_list();
+	}
+    $.ajax(ajax);
+}
+
+function bank_remove(bank_id)
+{
+    var html = '';
+    // html += '<div class="card">';
+    // html += '<div class="card-header">';
+    // html += '<h4 class="card-title">Click Confirm to Delete</h4>';
+    // html += '</div>';
+    // html += '<div class="card-body">';
+    // html += '<p class="card-text"></p>';
+    // html += '<div class="btn btn-secondary" onclick="popup_hide()">Cancel</div>';
+    // html += '<div class="width5"></div>';
+    // html += '<div class="btn btn-danger" onclick="destroy(\'' + bank_id + '\')">Confirm</div>';
+    // html += '<div id="result"></div>';
+    // html += '</div>';
+    // html += '</div>';
+
+    html += '<div class="box box-danger">';
+    html += '<div class="box-header with-border">';
+    html += '<h3 class="box-title">Click Confirm to Delete</h3>';
+    html += '</div>';
+    html += '<div class="box-body">';
+    html += '<div class="btn btn-secondary" onclick="popup_hide()">Cancel</div>';
+    html += '<div class="width5"></div>';
+    html += '<div class="btn btn-danger" onclick="bank_destroy(\'' + bank_id + '\')">Confirm</div>';
+    html += '<div id="result"></div>';
+    html += '</div>';
+    html += '</div>';
+    popup_show(html);
+}
+
+function bank_destroy(bank_id)
+{
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.bank_id = bank_id;
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/bank/destroy';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        var message = response.message;
+        
+        if(error == 99)
+        {
+            window.location.href = login_url;
+            return;
+        }
+		
+		if(error == 1)
+		{
+			$('#result').html('<span class="text-red">' + message + '</span>');
+			return;
+		}
+		
+        $('#result').html('<span class="text-green">' + message + '</span>');
+
+        popup_hide();
+        bank_list();
+	}
+    $.ajax(ajax);
+}
+
+function bank_index()
+{
+    app_data = {};
+    app_data.page = 1;
+    app_data.sort = 'name';
+    app_data.direction = 'asc';
+    app_data.filter_name = '';
+    bank_list();
+}
+
+function bank_loan_index()
+{
+    app_data = {};
+    app_data.page = 1;
+    app_data.sort = 'name';
+    app_data.direction = 'asc';
+    app_data.filter_name = '';
+    var calculates = [];
+    calculates.push('add');
+    calculates.push('substract');
+    app_data.calculates = calculates;
+    bank_loan_list();
+}
+
+function bank_loan_list()
+{
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.page = app_data.page;
+    data.sort = app_data.sort;
+    data.direction = app_data.direction;
+    data.filter_name = app_data.filter_name;
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/bank_loan/list';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+
+        var bank_loans = response.bank_loans;
+        var html = '';
+
+        // header
+        html += '<section class="content-header">';
+        html += '<h1>';
+        html += 'Bank Loan Management';
+        html += '<small>Listing of all bank loans</small>';
+        html += '</h1>';
+        html += '</section>';
+
+        // filter bank_loans
+        html += '<section class="content">';
+        html += '<div class="row">';
+        html += '<div class="col-md-12">';
+        html += '<div class="box box-primary">';
+        html += '<div class="box-header with-border">';
+        html += '<h3 class="box-title">Filters</h3>';
+        html += '</div>';
+        html += '<div class="box-body">';
+        html += '<div class="form-group">';
+        html += '<label>Bank Loan Name</label>';
+        html += '<input id="filter_name" type="text" class="form-control" value="' + app_data.filter_name + '">';
+        html += '</div>';
+        html += '</div>';
+        html += '<div class="box-footer">';
+        html += '<div class="btn btn-primary" onclick="bank_loan_filter()">Filter</button>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</section>';
+
+        // create bank_loans
+        html += '<div class="row">';
+        html += '<div class="col-md-12">';
+        html += '<div class="width15"></div>';
+        html += '<div class="btn btn-success" onclick="bank_loan_create()">Create Bank Loan</div>';
+        html += '</div>';
+        html += '</div>';
+
+        // list bank_loans
+        html += '<section class="content">';
+        html += '<div class="row">';
+        html += '<div class="col-xs-12">';
+        html += '<div class="box box-primary">';
+        html += '<div class="box-header">';
+        html += '<h3 class="box-title">Bank Loan List</h3>';
+        html += '</div>';
+        html += '<div class="box-body table-responsive no-padding">';
+        html += '<table class="table table-hover">';
+        html += '<tr>';
+        html += '<th>Bank</th>';
+        html += '<th onclick="bank_loan_sorting(\'name\')">Name</th>';
+        html += '<th onclick="bank_loan_sorting(\'lock_period\')">Lock Period</th>';
+        html += '<th>Actions</th>';
+        html += '</tr>';
+        for(i in bank_loans)
+        {
+            var bank_loan = bank_loans[i];
+
+            html += '<tr>';
+            html += '<td>' + bank_loan.bank_name + '</td>';
+            html += '<td>' + bank_loan.name + '</td>';
+            html += '<td>' + bank_loan.lock_period + ' years</td>';
+            html += '<td>';
+            html += '<div class="btn btn-primary" onclick="bank_loan_edit(\'' + bank_loan.id + '\')"><i class="fa fa-edit"></i></div>';
+            html += '<div class="width5"></div>';
+            html += '<div class="btn btn-danger" onclick="bank_loan_remove(\'' + bank_loan.id + '\')"><i class="fa fa-trash"></i></div>';
+            html += '</td>';
+            html += '</tr>';
+        }
+        html += '</table>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</section>';
+        $('#content').html(html);
+	}
+    $.ajax(ajax);
+}
+
+function bank_loan_filter()
+{
+    app_data.filter_name = $('#filter_name').val();
+    app_data.page = 1;
+    bank_loan_list();
+}
+
+function bank_loan_paging(page)
+{
+    app_data.page = page;
+    bank_loan_list();
+}
+
+function bank_loan_sorting(sort)
+{
+    if(sort == app_data.sort)
+    {
+        if(app_data.direction == 'asc')
+        {
+            app_data.direction = 'desc';
+        }
+        else
+        {
+            app_data.direction = 'asc';
+        }
+    }
+    if(sort != app_data.sort)
+    {
+        app_data.sort = sort;
+        app_data.direction = 'asc';
+    }
+    bank_loan_list();
+}
+
+function bank_loan_create()
+{
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/bank_loan/create';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        var message = response.message;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+		
+		if(error != 0)
+		{
+			$('#content').html(message);
+			return;
+		}
+		
+        var banks = response.banks;
+        var rates = response.rates;
+        var html = '';
+
+        app_data.rates = rates;
+
+        // start
+        html += '<section class="content">';
+        html += '<div class="row">';
+        html += '<div class="col-md-12">';
+        html += '<div class="box box-primary">';
+        html += '<div class="box-header with-border">';
+        html += '<h3 class="box-title">Add Bank Loan</h3>';
+        html += '</div>';
+        html += '<div class="box-body">';
+
+        // bank_id
+        html += '<div class="form-group">';
+        html += '<label>Bank</label>';
+        html += '<select id="bank_id" class="form-control select2" style="width: 100%;">';
+        html += '<option value="">Select Bank</option>';
+        for(i in banks)
+        {
+            var bank = banks[i];
+            html += '<option value="' + bank.id + '">' + bank.name + '</option>';
+        }
+        html += '</select>';
+        html += '</div>';
+
+        // name
+        html += '<div class="form-group">';
+        html += '<label>Bank Loan Name</label>';
+        html += '<input id="name" type="text" class="form-control">';
+        html += '</div>';
+
+        // lock_period
+        html += '<div class="form-group">';
+        html += '<label>Lock Period</label>';
+        html += '<input id="lock_period" type="text" class="form-control">';
+        html += '</div>';
+
+        // bank_rates
+        app_data.new_bank_rate_ids = [];
+        html += '<div class="box box-success">';
+        html += '<div class="box-header with-border">';
+        html += '<h3 class="box-title">Bank Rates</h3>';
+        html += '</div>';
+        html += '<div class="box-body">';
+        html += '<table id="table_bank_rates" class="table table-bordered">';
+        html += '<tr>';
+        html += '<th>Year</th>';
+        html += '<th>Rate</th>';
+        html += '<th>Calculate</th>';
+        html += '<th>Interest</th>';
+        html += '<th>Action</th>';
+        html += '</tr>';
+        html += '</table>';
+        html += '</div>';
+        html += '</div>';
+        html += '<div class="btn btn-success pull-right" onclick="bank_rate_create()">Add Bank Rate</div>';
+
+        // end
+        html += '</div>';
+        html += '<div class="box-footer">';
+        html += '<div class="btn btn-success" onclick="bank_loan_add()">Add Bank Loan</button>';
+        html += '</div>';
+        html += '<div id="result"></div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</section>';
+
+        $('#content').html(html);
+        $('.select2').select2();
+	}
+    $.ajax(ajax);
+}
+
+function bank_loan_add()
+{
+    $('#result').html('<span class="text-light-blue">Please wait...</span>');
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.bank_id = $('#bank_id').val();
+    data.name = $('#name').val();
+    data.lock_period = $('#lock_period').val();
+    var new_bank_rates = [];
+    for(i in app_data.new_bank_rate_ids)
+    {
+        var id = app_data.new_bank_rate_ids[i];
+        var bank_rate = {};
+        bank_rate.id = id;
+        bank_rate.year = $('#new_bank_rate_year_' + id).val();
+        bank_rate.rate_id = $('#new_bank_rate_rate_id_' + id).val();
+        bank_rate.calculate = $('#new_bank_rate_calculate_' + id).val();
+        bank_rate.interest = $('#new_bank_rate_interest_' + id).val();
+        new_bank_rates.push(bank_rate);
+    }
+    data.new_bank_rates = new_bank_rates;
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/bank_loan/add';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        var message = response.message;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+
+        if(error != 0)
+        {
+            $('#result').html('<span class="text-red">' + message + '</span>');
+            return;
+        }
+
+        $('#result').html('<span class="text-green">' + message + '</span>');
+        bank_loan_list();
+	}
+    $.ajax(ajax);
+}
+
+function bank_loan_edit(bank_loan_id)
+{
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.bank_loan_id = bank_loan_id;
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/bank_loan/edit';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        var message = response.message;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+		
+		if(error != 0)
+		{
+			$('#content').html(message);
+			return;
+		}
+		
+        var rates = response.rates;
+        var banks = response.banks;
+        var bank_loan = response.bank_loan;
+        var bank_rates = response.bank_rates;
+        var html = '';
+
+        app_data.rates = rates;
+
+        // start
+        html += '<section class="content">';
+        html += '<div class="row">';
+        html += '<div class="col-md-12">';
+        html += '<div class="box box-primary">';
+        html += '<div class="box-header with-border">';
+        html += '<h3 class="box-title">Edit Bank Loan</h3>';
+        html += '</div>';
+        html += '<div class="box-body">';
+
+        // id
+        html += '<input id="bank_loan_id" type="hidden" value="' + bank_loan.id + '">';
+
+        // bank_id
+        html += '<div class="form-group">';
+        html += '<label>Bank</label>';
+        html += '<select id="bank_id" class="form-control select2" style="width: 100%;">';
+        html += '<option value="">Select Bank</option>';
+        for(i in banks)
+        {
+            var bank = banks[i];
+            var html_selected = '';
+            if(bank.id == bank_loan.bank_id)
+            {
+                html_selected = 'selected';
+            }
+            html += '<option value="' + bank.id + '" ' + html_selected + '>' + bank.name + '</option>';
+        }
+        html += '</select>';
+        html += '</div>';
+
+        // name
+        html += '<div class="form-group">';
+        html += '<label>Bank Loan Name</label>';
+        html += '<input id="name" type="text" class="form-control" value="' + bank_loan.name + '">';
+        html += '</div>';
+
+        // lock_period
+        html += '<div class="form-group">';
+        html += '<label>Lock Period</label>';
+        html += '<input id="lock_period" type="text" class="form-control" value="' + bank_loan.lock_period + '">';
+        html += '</div>';
+
+        // bank_rates
+        app_data.new_bank_rate_ids = [];
+        app_data.edit_bank_rate_ids = [];
+        html += '<div class="box box-success">';
+        html += '<div class="box-header with-border">';
+        html += '<h3 class="box-title">Bank Rates</h3>';
+        html += '</div>';
+        html += '<div class="box-body">';
+        html += '<table id="table_bank_rates" class="table table-bordered">';
+        html += '<tr>';
+        html += '<th>Year</th>';
+        html += '<th>Rate</th>';
+        html += '<th>Calculate</th>';
+        html += '<th>Interest</th>';
+        html += '<th>Action</th>';
+        html += '</tr>';
+        for(i in bank_rates)
+        {
+            var bank_rate = bank_rates[i];
+            app_data.edit_bank_rate_ids.push(bank_rate.id);
+
+            html += '<tr id="edit_bank_rate_tr_' + bank_rate.id + '">';
+            html += '<td><input id="edit_bank_rate_year_' + bank_rate.id + '" type="text" class="form-control" value="' + bank_rate.year + '"></td>';
+            html += '<td>';
+            html += '<select id="edit_bank_rate_rate_id_' + bank_rate.id + '" class="form-control select2" style="width: 100%;">';
+            for(i in rates)
+            {
+                var rate = rates[i];
+                var html_selected = '';
+                if(rate.id == bank_rate.rate_id)
+                {
+                    html_selected = 'selected';
+                }
+                html += '<option value="' + rate.id + '" ' + html_selected + '>' + rate.name + '</option>';
+            }
+            html += '</select>';
+            html += '</td>';
+            html += '<td>';
+            html += '<select id="edit_bank_rate_calculate_' + bank_rate.id + '" class="form-control select2" style="width: 100%;">';
+            var calculates = app_data.calculates;
+            for(i in calculates)
+            {
+                var calculate = calculates[i];
+                var html_selected = '';
+                if(calculate == bank_rate.calculate)
+                {
+                    html_selected = 'selected';
+                }
+                html += '<option value="' + calculate + '" ' + html_selected + '>' + calculate + '</option>';
+            }
+            html += '</select>';
+            html += '</td>';
+            html += '<td><input id="edit_bank_rate_interest_' + bank_rate.id + '"type="text"class="form-control" value="' + bank_rate.interest + '"></td>';
+            html += '<td>';
+            html += '<div class="btn btn-danger" onclick="bank_rate_destroy(\'' + bank_rate.id + '\', \'edit\')">';
+            html += '<i class="fa fa-trash-o"></i>';
+            html += '</div>';
+            html += '</td>';
+            html += '</tr>';
+        }
+        html += '</table>';
+        html += '</div>';
+        html += '</div>';
+        html += '<div class="btn btn-success pull-right" onclick="bank_rate_create()">Add Bank Rate</div>';
+
+        // end
+        html += '</div>';
+        html += '<div class="box-footer">';
+        html += '<div class="btn btn-primary" onclick="bank_loan_update()">Update Bank Loan</button>';
+        html += '</div>';
+        html += '<div id="result"></div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</section>';
+
+        $('#content').html(html);
+
+        var options = {};
+        options.minimumResultsForSearch = -1;
+        $('.select2').select2(options);
+	}
+    $.ajax(ajax);
+}
+
+function bank_loan_update()
+{
+    $('#result').html('<span class="text-light-blue">Please wait...</span>');
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.bank_loan_id = $('#bank_loan_id').val();
+    data.bank_id = $('#bank_id').val();
+    data.name = $('#name').val();
+    data.lock_period = $('#lock_period').val();
+    var edit_bank_rates = [];
+    for(i in app_data.edit_bank_rate_ids)
+    {
+        var id = app_data.edit_bank_rate_ids[i];
+        var bank_rate = {};
+        bank_rate.id = id;
+        bank_rate.year = $('#edit_bank_rate_year_' + id).val();
+        bank_rate.rate_id = $('#edit_bank_rate_rate_id_' + id).val();
+        bank_rate.calculate = $('#edit_bank_rate_calculate_' + id).val();
+        bank_rate.interest = $('#edit_bank_rate_interest_' + id).val();
+        edit_bank_rates.push(bank_rate);
+    }
+    data.edit_bank_rates = edit_bank_rates;
+    var new_bank_rates = [];
+    for(i in app_data.new_bank_rate_ids)
+    {
+        var id = app_data.new_bank_rate_ids[i];
+        var bank_rate = {};
+        bank_rate.id = id;
+        bank_rate.year = $('#new_bank_rate_year_' + id).val();
+        bank_rate.rate_id = $('#new_bank_rate_rate_id_' + id).val();
+        bank_rate.calculate = $('#new_bank_rate_calculate_' + id).val();
+        bank_rate.interest = $('#new_bank_rate_interest_' + id).val();
+        new_bank_rates.push(bank_rate);
+    }
+    data.new_bank_rates = new_bank_rates;
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/bank_loan/update';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        var message = response.message;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+		
+		if(error == 1)
+		{
+			$('#result').html('<span class="text-red">' + message + '</span>');
+			return;
+		}
+		
+        $('#result').html('<span class="text-green">' + message + '</span>');
+        bank_loan_list();
+	}
+    $.ajax(ajax);
+}
+
+function bank_loan_remove(bank_loan_id)
+{
+    var html = '';
+    html += '<div class="box box-danger">';
+    html += '<div class="box-header with-border">';
+    html += '<h3 class="box-title">Click Confirm to Delete</h3>';
+    html += '</div>';
+    html += '<div class="box-body">';
+    html += '<div class="btn btn-secondary" onclick="popup_hide()">Cancel</div>';
+    html += '<div class="width5"></div>';
+    html += '<div class="btn btn-danger" onclick="bank_loan_destroy(\'' + bank_loan_id + '\')">Confirm</div>';
+    html += '<div id="result"></div>';
+    html += '</div>';
+    html += '</div>';
+    popup_show(html);
+}
+
+function bank_loan_destroy(bank_loan_id)
+{
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.bank_loan_id = bank_loan_id;
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/bank_loan/destroy';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        var message = response.message;
+        
+        if(error == 99)
+        {
+            window.location.href = login_url;
+            return;
+        }
+		
+		if(error == 1)
+		{
+			$('#result').html('<span class="text-red">' + message + '</span>');
+			return;
+		}
+		
+        $('#result').html('<span class="text-green">' + message + '</span>');
+
+        popup_hide();
+        bank_loan_list();
+	}
+    $.ajax(ajax);
+}
+
+function bank_rate_create()
+{
+    // set current_year
+    var current_year = 0;
+    for(i in app_data.edit_bank_rate_ids)
+    {
+        var id = app_data.edit_bank_rate_ids[i];
+        current_year = $('#edit_bank_rate_year_' + id).val();
+    }
+    for(i in app_data.new_bank_rate_ids)
+    {
+        var id = app_data.new_bank_rate_ids[i];
+        current_year = $('#new_bank_rate_year_' + id).val();
+    }
+    current_year++;
+
+    // create new bank_rate
+    var bank_rate_id = 0;
+    for(i in app_data.new_bank_rate_ids)
+    {
+        bank_rate_id = app_data.new_bank_rate_ids[i];
+    }
+    bank_rate_id++;
+    app_data.new_bank_rate_ids.push(bank_rate_id);
+
+    var html = '';
+    html += '<tr id="new_bank_rate_tr_' + bank_rate_id + '">';
+    html += '<td><input id="new_bank_rate_year_' + bank_rate_id + '" type="text" class="form-control" value="' + current_year + '"></td>';
+    html += '<td>';
+    html += '<select id="new_bank_rate_rate_id_' + bank_rate_id + '" class="form-control select2" style="width: 100%;">';
+    for(i in app_data.rates)
+    {
+        var rate = app_data.rates[i];
+        html += '<option value="' + rate.id + '">' + rate.name + '</option>';
+    }
+    html += '</select>';
+    html += '</td>';
+    html += '<td>';
+    html += '<select id="new_bank_rate_calculate_' + bank_rate_id + '" class="form-control select2" style="width: 100%;">';
+    var calculates = app_data.calculates;
+    for(i in calculates)
+    {
+        var calculate = calculates[i];
+        html += '<option value="' + calculate + '">' + calculate + '</option>';
+    }
+    html += '</select>';
+    html += '</td>';
+    html += '<td><input id="new_bank_rate_interest_' + bank_rate_id + '"type="text"class="form-control" value="0"></td>';
+
+    // action
+    html += '<td>';
+    html += '<div class="btn btn-danger" onclick="bank_rate_destroy(\'' + bank_rate_id + '\', \'new\')">';
+    html += '<i class="fa fa-trash-o"></i>';
+    html += '</div>';
+    html += '</td>';
+
+    html += '</tr>';
+    $('#table_bank_rates').append(html);
+    
+    var options = {};
+    options.minimumResultsForSearch = -1;
+    $('.select2').select2(options);
+}
+
+function bank_rate_destroy(bank_rate_id, mode)
+{
+    $('#' + mode + '_bank_rate_tr_' + bank_rate_id).remove();
+
+    if(mode == 'new')
+    {
+        for(i in app_data.new_bank_rate_ids)
+        {
+            var new_bank_rate_id = app_data.new_bank_rate_ids[i];
+            if(new_bank_rate_id == bank_rate_id)
+            {
+                app_data.new_bank_rate_ids.splice(i, 1);
+            }
+        }
+    }
+
+    if(mode == 'edit')
+    {
+        for(i in app_data.edit_bank_rate_ids)
+        {
+            var edit_bank_rate_id = app_data.edit_bank_rate_ids[i];
+            if(edit_bank_rate_id == bank_rate_id)
+            {
+                app_data.edit_bank_rate_ids.splice(i, 1);
+            }
+        }
+    }
+
+    if(mode == 'new')
+    {
+        return;
+    }
+
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.bank_rate_id = bank_rate_id;
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/bank_rate/destroy';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+	}
+    $.ajax(ajax);
 }

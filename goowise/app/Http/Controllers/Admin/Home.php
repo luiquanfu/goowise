@@ -161,4 +161,22 @@ class Home extends Controller
         $response['message'] = 'Success';
         return $response;
     }
+
+    public function migration()
+    {
+        $data = array();
+        $data['--database'] = 'mysql';
+        $data['--path'] = 'database/migrations';
+        $data['--force'] = true;
+        \Artisan::call('migrate', $data);
+        return 'migrate done';
+    }
+
+    public function rollback()
+    {
+        $data = array();
+        $data['--database'] = 'mysql';
+        \Artisan::call('migrate:rollback', $data);
+        return 'rollback done';
+    }
 }
