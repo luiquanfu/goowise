@@ -16,6 +16,7 @@ Route::post('admin/login', 'Admin\Home@login');
 Route::post('admin/logout', 'Admin\Home@logout');
 Route::get('admin/migration', 'Admin\Home@migration');
 Route::get('admin/rollback', 'Admin\Home@rollback');
+Route::post('admin/dashboard/list', 'Admin\Dashboard@list');
 Route::post('admin/rate/list', 'Admin\Rate@list');
 Route::post('admin/rate/add', 'Admin\Rate@add');
 Route::post('admin/rate/edit', 'Admin\Rate@edit');

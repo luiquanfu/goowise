@@ -63,7 +63,7 @@ function initialize()
         }
 
         initialize_display();
-        bank_loan_index();
+        dashboard_index();
 	}
     $.ajax(ajax);
 }
@@ -138,11 +138,11 @@ function login_display()
     html += '<div class="login-box-body">';
     html += '<p class="login-box-msg">Admin Login</p>';
     html += '<div class="form-group has-feedback">';
-    html += '<input id="email" type="email" class="form-control" placeholder="Email">';
+    html += '<input id="email" type="email" class="form-control" placeholder="Email" onkeyup="login_onkeyup(event, \'email\')">';
     html += '<span class="glyphicon glyphicon-envelope form-control-feedback"></span>';
     html += '</div>';
     html += '<div class="form-group has-feedback">';
-    html += '<input id="password" type="password" class="form-control" placeholder="Password">';
+    html += '<input id="password" type="password" class="form-control" placeholder="Password" onkeyup="login_onkeyup(event, \'password\')">';
     html += '<span class="glyphicon glyphicon-lock form-control-feedback"></span>';
     html += '</div>';
     html += '<div class="row">';
@@ -157,6 +157,20 @@ function login_display()
     html += '</div>';
 
     $('#app').html(html);
+}
+
+function login_onkeyup(event, position)
+{
+    if(event.keyCode == 13)
+    {
+        if(position == 'email')
+        {
+            $('#password').focus();
+            return;
+        }
+
+        login_submit();
+    }
 }
 
 function login_submit()
@@ -237,7 +251,7 @@ function admin_display()
     html += '<section class="content">';
     html += '<div class="row">';
     html += '<div class="col-xs-12">';
-    html += '<div class="box">';
+    html += '<div class="box box-primary">';
     html += '<div class="box-header">';
     html += '<h3 class="box-title">Responsive Hover Table</h3>';
     html += '';
@@ -297,6 +311,132 @@ function admin_display()
     $('#content').html(html);
 }
 
+function dashboard_index()
+{
+    app_data = {};
+    app_data.page = 1;
+    app_data.sort = 'name';
+    app_data.direction = 'asc';
+    app_data.filter_name = '';
+    var calculates = [];
+    calculates.push('add');
+    calculates.push('substract');
+    app_data.calculates = calculates;
+    dashboard_list();
+}
+
+function dashboard_list()
+{
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.page = app_data.page;
+    data.sort = app_data.sort;
+    data.direction = app_data.direction;
+    data.filter_name = app_data.filter_name;
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/dashboard/list';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+
+        var dashboards = response.dashboards;
+        var html = '';
+
+        // header
+        html += '<section class="content-header">';
+        html += '<h1>';
+        html += 'Dashboard';
+        html += '<small>Listing of all Bank Rates</small>';
+        html += '</h1>';
+        html += '</section>';
+
+        // filter dashboards
+        html += '<section class="content">';
+        html += '<div class="row">';
+        html += '<div class="col-md-12">';
+        html += '<div class="box box-primary">';
+        html += '<div class="box-header with-border">';
+        html += '<h3 class="box-title">Filters</h3>';
+        html += '</div>';
+        html += '<div class="box-body">';
+        html += '<div class="form-group">';
+        html += '<label>Dashboard Name</label>';
+        html += '<input id="filter_name" type="text" class="form-control" value="' + app_data.filter_name + '">';
+        html += '</div>';
+        html += '</div>';
+        html += '<div class="box-footer">';
+        html += '<div class="btn btn-primary" onclick="dashboard_filter()">Filter</button>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</section>';
+
+        // create dashboards
+        html += '<div class="row">';
+        html += '<div class="col-md-12">';
+        html += '<div class="width15"></div>';
+        html += '<div class="btn btn-success" onclick="dashboard_create()">Create Dashboard</div>';
+        html += '</div>';
+        html += '</div>';
+
+        // list dashboards
+        html += '<section class="content">';
+        html += '<div class="row">';
+        html += '<div class="col-xs-12">';
+        html += '<div class="box box-primary">';
+        html += '<div class="box-header">';
+        html += '<h3 class="box-title">Dashboard List</h3>';
+        html += '</div>';
+        html += '<div class="box-body table-responsive no-padding">';
+        html += '<table class="table table-hover">';
+        html += '<tr>';
+        html += '<th>Bank</th>';
+        html += '<th onclick="dashboard_sorting(\'name\')">Name</th>';
+        html += '<th onclick="dashboard_sorting(\'lock_period\')">Lock Period</th>';
+        html += '<th>Actions</th>';
+        html += '</tr>';
+        for(i in dashboards)
+        {
+            var dashboard = dashboards[i];
+
+            html += '<tr>';
+            html += '<td>' + dashboard.bank_name + '</td>';
+            html += '<td>' + dashboard.name + '</td>';
+            html += '<td>' + dashboard.lock_period + ' years</td>';
+            html += '<td>';
+            html += '<div class="btn btn-primary" onclick="dashboard_edit(\'' + dashboard.id + '\')"><i class="fa fa-edit"></i></div>';
+            html += '<div class="width5"></div>';
+            html += '<div class="btn btn-danger" onclick="dashboard_remove(\'' + dashboard.id + '\')"><i class="fa fa-trash"></i></div>';
+            html += '</td>';
+            html += '</tr>';
+        }
+        html += '</table>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</section>';
+        $('#content').html(html);
+	}
+    $.ajax(ajax);
+}
+
 function rate_index()
 {
     app_data = {};
@@ -337,6 +477,8 @@ function rate_list()
         }
 
         var rates = response.rates;
+        var total_pages = response.total_pages;
+        var current_page = response.current_page;
         var html = '';
 
         // header
@@ -410,11 +552,10 @@ function rate_list()
         html += '</div>';
         html += '<div class="box-footer clearfix">';
         html += '<ul class="pagination pagination-sm no-margin pull-right">';
-        html += '<li><a href="#">&laquo;</a></li>';
-        html += '<li><a href="#">1</a></li>';
-        html += '<li><a href="#">2</a></li>';
-        html += '<li><a href="#">3</a></li>';
-        html += '<li><a href="#">&raquo;</a></li>';
+        for(var i = 1; i <= total_pages; i++)
+        {
+            html += '<li onclick="rate_paging(' + i + ')"><a href="#">' + i + '</a></li>';
+        }
         html += '</ul>';
         html += '</div>';
         html += '</div>';
@@ -810,7 +951,6 @@ function bank_list()
         html += '<div class="box-body table-responsive no-padding">';
         html += '<table class="table table-hover">';
         html += '<tr>';
-        html += '<th onclick="bank_sorting(\'id\')">ID</th>';
         html += '<th onclick="bank_sorting(\'name\')">Name</th>';
         html += '<th>Actions</th>';
         html += '</tr>';
@@ -819,7 +959,6 @@ function bank_list()
             var bank = banks[i];
 
             html += '<tr>';
-            html += '<td>' + bank.id + '</td>';
             html += '<td>' + bank.name + '</td>';
             html += '<td>';
             html += '<div class="btn btn-primary" onclick="bank_edit(\'' + bank.id + '\')"><i class="fa fa-edit"></i></div>';
@@ -1377,6 +1516,7 @@ function bank_loan_create()
 
         // bank_rates
         app_data.new_bank_rate_ids = [];
+        app_data.edit_bank_rate_ids = [];
         html += '<div class="box box-success">';
         html += '<div class="box-header with-border">';
         html += '<h3 class="box-title">Bank Rates</h3>';

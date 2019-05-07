@@ -41,7 +41,7 @@ class Github extends Controller
             }
             $filename = trim($words[$index_filename]);
 			$from = $local_path.'/'.$filename;
-            $to = $server_path.'/'.$filename;
+            $to = $server_path.'/'.str_replace('public/', 'public_html/', $filename);
             \Log::info($from);
 
 			// ignore env file

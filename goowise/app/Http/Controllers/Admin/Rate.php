@@ -17,7 +17,7 @@ class Rate extends Controller
         $sort = $request->get('sort');
         $direction = $request->get('direction');
         $filter_name = $request->get('filter_name');
-        $paginate = 10;
+        $paginate = 20;
         
         \Log::info('Admin '.$api_token.' list rate page '.$page);
 
