@@ -262,6 +262,7 @@ class BankLoan extends Controller
         $query->select($select);
         $query->where('bank_loan_id', $bank_loan->id);
         $query->where('deleted_at', 0);
+        $query->orderBy('year');
         $bank_rates = $query->get();
 
         // success

@@ -125,13 +125,7 @@ function initialize_display()
     html += '</div>';
 
     $('#app').html(html);
-
-    var document_height = $(document).height();
-    var header_height = $('#header').outerHeight();
-    var content_height = $('#content').outerHeight();
-    var footer_height = $('#footer').outerHeight();
-    var minimum_height = document_height - header_height - footer_height;
-    if(content_height < minimum_height) $('#content').height(minimum_height);
+    $('body').layout('fix');
 }
 
 function login_display()
@@ -413,6 +407,15 @@ function rate_list()
             html += '</tr>';
         }
         html += '</table>';
+        html += '</div>';
+        html += '<div class="box-footer clearfix">';
+        html += '<ul class="pagination pagination-sm no-margin pull-right">';
+        html += '<li><a href="#">&laquo;</a></li>';
+        html += '<li><a href="#">1</a></li>';
+        html += '<li><a href="#">2</a></li>';
+        html += '<li><a href="#">3</a></li>';
+        html += '<li><a href="#">&raquo;</a></li>';
+        html += '</ul>';
         html += '</div>';
         html += '</div>';
         html += '</div>';
