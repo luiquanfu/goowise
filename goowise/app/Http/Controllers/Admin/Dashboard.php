@@ -25,7 +25,6 @@ class Dashboard extends Controller
         // get rates
         $query = \DB::connection('mysql')->table('rates');
         $query->select('id', 'name', 'interest');
-        $query->where('deleted_at', 0);
         $rates = $query->get();
 
         // get banks
@@ -36,7 +35,7 @@ class Dashboard extends Controller
         
         // get bank_loans
         $query = \DB::connection('mysql')->table('bank_loans');
-        $query->select('id', 'name', 'lock_period');
+        $query->select('id', 'bank_id', 'name', 'lock_period');
         $query->where('deleted_at', 0);
         $bank_loans = $query->get();
 
@@ -57,44 +56,82 @@ class Dashboard extends Controller
         $query->orderBy('year');
         $bank_rates = $query->get();
 
-        // modify bank_rates
-        foreach($bank_rates as $bank_rate)
+        // create results
+        $result_banks = array();
+        foreach($banks as $bank)
         {
-            $bank_rate->rate_name = 'NA';
-            foreach($rates as $rate)
-            {
-                if($rate->id == $bank_rate->rate_id)
-                {
-                    $bank_rate->rate_name = $rate->name;
-                    $bank_rate->rate_interest = $rate->interest;
-                }
-            }
+            $result_bank = (object)[];
+            $result_bank->name = $bank->name;
+            $result_bank_loans = array();
 
-            $bank_rate->bank_name = 'NA';
-            foreach($banks as $bank)
-            {
-                if($bank->id == $bank_rate->bank_id)
-                {
-                    $bank_rate->bank_name = $bank->name;
-                }
-            }
-
-            $bank_rate->bank_loan_name = 'NA';
             foreach($bank_loans as $bank_loan)
             {
-                if($bank_loan->id == $bank_rate->bank_loan_id)
+                if($bank_loan->bank_id != $bank->id)
                 {
-                    $bank_rate->bank_loan_name = $bank_loan->name;
-                    $bank_rate->lock_period = $bank_loan->lock_period;
+                    continue;
                 }
+
+                $result_bank_loan = (object)[];
+                $result_bank_loan->name = $bank_loan->name;
+                $result_bank_loan->lock_period = $bank_loan->lock_period.' Years';
+                $result_bank_rates = array();
+
+                foreach($bank_rates as $bank_rate)
+                {
+                    if($bank_rate->bank_loan_id != $bank_loan->id)
+                    {
+                        continue;
+                    }
+                    
+                    $rate_name = '';
+                    $rate_interest = 0;
+                    $formula = '';
+                    $interest_rate = $bank_rate->interest;
+
+                    foreach($rates as $rate)
+                    {
+                        if($rate->id == $bank_rate->rate_id)
+                        {
+                            $rate_name = $rate->name;
+                            $rate_interest = $rate->interest;
+                        }
+                    }
+
+                    if($bank_rate->rate_id != 0)
+                    {
+                        $formula = $rate_name;
+                        $interest_rate = $rate_interest;
+                        if($bank_rate->calculate == 'add')
+                        {
+                            $formula .= ' + ';
+                            $interest_rate += $bank_rate->interest;
+                        }
+                        if($bank_rate->calculate == 'subtract')
+                        {
+                            $formula .= ' - ';
+                            $interest_rate -= $bank_rate->interest;
+                        }
+                        $formula .= $bank_rate->interest.' %';
+                    }
+
+                    $result_bank_rate = (object)[];
+                    $result_bank_rate->year = $bank_rate->year;
+                    $result_bank_rate->formula = $formula;
+                    $result_bank_rate->interest_rate = round($interest_rate, 3).' %';
+                    $result_bank_rates[] = $result_bank_rate;
+                }
+                $result_bank_loan->bank_rates = $result_bank_rates;
+                $result_bank_loans[] = $result_bank_loan;
             }
+            $result_bank->bank_loans = $result_bank_loans;
+            $result_banks[] = $result_bank;
         }
 
         // success
         $response = array();
         $response['error'] = 0;
         $response['message'] = 'Success';
-        $response['bank_rates'] = $bank_rates;
+        $response['banks'] = $result_banks;
         return $response;
     }
 }

@@ -103,7 +103,7 @@ function initialize_display()
     html += '<aside class="main-sidebar">';
     html += '<section class="sidebar">';
     html += '<ul class="sidebar-menu" data-widget="tree">';
-    html += '<li><a href="#" onclick="admin_display()"><i class="fa fa-dashboard"></i> <span>Dashboard</span></a></li>';
+    html += '<li><a href="#" onclick="dashboard_index()"><i class="fa fa-dashboard"></i> <span>Dashboard</span></a></li>';
     html += '<li><a href="#" onclick="rate_index()"><i class="fa fa-object-group"></i> <span>Rate</span></a></li>';
     html += '<li><a href="#" onclick="bank_index()"><i class="fa fa-bank"></i> <span>Bank</span></a></li>';
     html += '<li><a href="#" onclick="bank_loan_index()"><i class="fa fa-th"></i> <span>Bank Loans</span></a></li>';
@@ -313,28 +313,10 @@ function admin_display()
 
 function dashboard_index()
 {
-    app_data = {};
-    app_data.page = 1;
-    app_data.sort = 'name';
-    app_data.direction = 'asc';
-    app_data.filter_name = '';
-    var calculates = [];
-    calculates.push('add');
-    calculates.push('substract');
-    app_data.calculates = calculates;
-    dashboard_list();
-}
-
-function dashboard_list()
-{
     loading_show();
 
     var data = {};
     data.api_token = api_token;
-    data.page = app_data.page;
-    data.sort = app_data.sort;
-    data.direction = app_data.direction;
-    data.filter_name = app_data.filter_name;
     data = JSON.stringify(data);
 
     var ajax = {};
@@ -354,7 +336,7 @@ function dashboard_list()
             return;
         }
 
-        var dashboards = response.dashboards;
+        var banks = response.banks;
         var html = '';
 
         // header
@@ -365,73 +347,68 @@ function dashboard_list()
         html += '</h1>';
         html += '</section>';
 
-        // filter dashboards
-        html += '<section class="content">';
-        html += '<div class="row">';
-        html += '<div class="col-md-12">';
-        html += '<div class="box box-primary">';
-        html += '<div class="box-header with-border">';
-        html += '<h3 class="box-title">Filters</h3>';
-        html += '</div>';
-        html += '<div class="box-body">';
-        html += '<div class="form-group">';
-        html += '<label>Dashboard Name</label>';
-        html += '<input id="filter_name" type="text" class="form-control" value="' + app_data.filter_name + '">';
-        html += '</div>';
-        html += '</div>';
-        html += '<div class="box-footer">';
-        html += '<div class="btn btn-primary" onclick="dashboard_filter()">Filter</button>';
-        html += '</div>';
-        html += '</div>';
-        html += '</div>';
-        html += '</div>';
-        html += '</section>';
-
-        // create dashboards
-        html += '<div class="row">';
-        html += '<div class="col-md-12">';
-        html += '<div class="width15"></div>';
-        html += '<div class="btn btn-success" onclick="dashboard_create()">Create Dashboard</div>';
-        html += '</div>';
-        html += '</div>';
-
-        // list dashboards
-        html += '<section class="content">';
-        html += '<div class="row">';
-        html += '<div class="col-xs-12">';
-        html += '<div class="box box-primary">';
-        html += '<div class="box-header">';
-        html += '<h3 class="box-title">Dashboard List</h3>';
-        html += '</div>';
-        html += '<div class="box-body table-responsive no-padding">';
-        html += '<table class="table table-hover">';
-        html += '<tr>';
-        html += '<th>Bank</th>';
-        html += '<th onclick="dashboard_sorting(\'name\')">Name</th>';
-        html += '<th onclick="dashboard_sorting(\'lock_period\')">Lock Period</th>';
-        html += '<th>Actions</th>';
-        html += '</tr>';
-        for(i in dashboards)
+        for(i in banks)
         {
-            var dashboard = dashboards[i];
+            var bank = banks[i];
 
+            html += '<section class="content">';
+            html += '<div class="row">';
+            html += '<div class="col-xs-12">';
+            html += '<div class="box box-primary">';
+            html += '<div class="box-header">';
+            html += '<h3 class="box-title">' + bank.name + '</h3>';
+            html += '</div>';
+            html += '<div class="box-body table-responsive no-padding">';
+            html += '<table class="table table-hover">';
             html += '<tr>';
-            html += '<td>' + dashboard.bank_name + '</td>';
-            html += '<td>' + dashboard.name + '</td>';
-            html += '<td>' + dashboard.lock_period + ' years</td>';
-            html += '<td>';
-            html += '<div class="btn btn-primary" onclick="dashboard_edit(\'' + dashboard.id + '\')"><i class="fa fa-edit"></i></div>';
-            html += '<div class="width5"></div>';
-            html += '<div class="btn btn-danger" onclick="dashboard_remove(\'' + dashboard.id + '\')"><i class="fa fa-trash"></i></div>';
-            html += '</td>';
+            html += '<th>Type</th>';
+            html += '<th>Lock Period</th>';
+            html += '<th>Year</th>';
+            html += '<th>Rate</th>';
+            html += '<th>Interest Rate</th>';
             html += '</tr>';
+
+            var bank_loans = bank.bank_loans;
+            for(i in bank_loans)
+            {
+                var bank_loan = bank_loans[i];
+
+                html += '<tr>';
+                html += '<td>' + bank_loan.name + '</td>';
+                html += '<td>' + bank_loan.lock_period + '</td>';
+
+                var bank_rates = bank_loan.bank_rates;
+                for(j in bank_rates)
+                {
+                    var bank_rate = bank_rates[j];
+
+                    if(j != 0)
+                    {
+                        html += '<tr>';
+                        html += '<td></td>';
+                        html += '<td></td>';
+                    }
+                    html += '<td>' + bank_rate.year + '</td>';
+                    html += '<td>' + bank_rate.formula + '</td>';
+                    html += '<td>' + bank_rate.interest_rate + '</td>';
+                    html += '</tr>';
+                }
+
+                if(bank_rates.length == 0)
+                {
+                    html += '<td></td>';
+                    html += '<td></td>';
+                    html += '<td></td>';
+                    html += '</tr>';
+                }
+            }
+            html += '</table>';
+            html += '</div>';
+            html += '</div>';
+            html += '</div>';
+            html += '</div>';
+            html += '</section>';
         }
-        html += '</table>';
-        html += '</div>';
-        html += '</div>';
-        html += '</div>';
-        html += '</div>';
-        html += '</section>';
         $('#content').html(html);
 	}
     $.ajax(ajax);
@@ -1290,7 +1267,7 @@ function bank_loan_index()
     app_data.filter_name = '';
     var calculates = [];
     calculates.push('add');
-    calculates.push('substract');
+    calculates.push('subtract');
     app_data.calculates = calculates;
     bank_loan_list();
 }
@@ -1716,6 +1693,7 @@ function bank_loan_edit(bank_loan_id)
             html += '<td><input id="edit_bank_rate_year_' + bank_rate.id + '" type="text" class="form-control" value="' + bank_rate.year + '"></td>';
             html += '<td>';
             html += '<select id="edit_bank_rate_rate_id_' + bank_rate.id + '" class="form-control select2" style="width: 100%;">';
+            html += '<option value="0">NA</option>';
             for(i in rates)
             {
                 var rate = rates[i];
@@ -1933,6 +1911,7 @@ function bank_rate_create()
     html += '<td><input id="new_bank_rate_year_' + bank_rate_id + '" type="text" class="form-control" value="' + current_year + '"></td>';
     html += '<td>';
     html += '<select id="new_bank_rate_rate_id_' + bank_rate_id + '" class="form-control select2" style="width: 100%;">';
+    html += '<option value="0">NA</option>';
     for(i in app_data.rates)
     {
         var rate = app_data.rates[i];

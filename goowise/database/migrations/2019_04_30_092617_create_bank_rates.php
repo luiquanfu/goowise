@@ -57,7 +57,7 @@ class CreateBankRates extends Migration
             $table->bigInteger('bank_id');
             $table->bigInteger('bank_loan_id');
             $table->integer('year');
-            $table->enum('calculate', ['add', 'substract']);
+            $table->enum('calculate', ['add', 'subtract']);
             $table->double('interest');
             $table->integer('created_at');
             $table->integer('updated_at');
