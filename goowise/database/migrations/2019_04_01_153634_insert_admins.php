@@ -45,7 +45,7 @@ class InsertAdmins extends Migration
 
     public function unique_id()
     {
-        $random = str_pad(rand(1, 999999999), 9, 0, STR_PAD_LEFT);
-        return time().$random;
+        $random = strtoupper(str_random(6));
+        return (microtime(true) * 10000).$random;
     }
 }

@@ -9,7 +9,7 @@ class CreateUsersTable extends Migration
     {
         Schema::create('users', function (Blueprint $table)
         {
-            $table->bigInteger('id');
+            $table->string('id', 20);
             $table->string('name', 50);
             $table->string('email');
             $table->string('mobile', 15);

@@ -9,7 +9,7 @@ class CreatePasswordResetsTable extends Migration
     {
         Schema::create('admins', function (Blueprint $table)
         {
-            $table->bigInteger('id');
+            $table->string('id', 20);
             $table->string('name', 50);
             $table->string('email');
             $table->string('mobile', 15);
@@ -28,8 +28,8 @@ class CreatePasswordResetsTable extends Migration
 
         Schema::create('admin_tokens', function (Blueprint $table)
         {
-            $table->bigInteger('id');
-            $table->bigInteger('admin_id');
+            $table->string('id', 20);
+            $table->string('admin_id', 20);
             $table->string('device_id');
             $table->string('device_type', 10);
             $table->string('ip_address', 25);

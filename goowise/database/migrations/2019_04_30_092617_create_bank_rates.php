@@ -9,7 +9,7 @@ class CreateBankRates extends Migration
     {
         Schema::create('rates', function (Blueprint $table)
         {
-            $table->bigInteger('id');
+            $table->string('id', 20);
             $table->string('name', 30);
             $table->double('interest');
             $table->integer('created_at');
@@ -23,7 +23,7 @@ class CreateBankRates extends Migration
 
         Schema::create('banks', function (Blueprint $table)
         {
-            $table->bigInteger('id');
+            $table->string('id', 20);
             $table->string('name', 30);
             $table->integer('created_at');
             $table->integer('updated_at');
@@ -36,8 +36,8 @@ class CreateBankRates extends Migration
 
         Schema::create('bank_loans', function (Blueprint $table)
         {
-            $table->bigInteger('id');
-            $table->bigInteger('bank_id');
+            $table->string('id', 20);
+            $table->string('bank_id', 20);
             $table->string('name', 30);
             $table->integer('lock_period');
             $table->integer('created_at');
@@ -52,10 +52,10 @@ class CreateBankRates extends Migration
 
         Schema::create('bank_rates', function (Blueprint $table)
         {
-            $table->bigInteger('id');
-            $table->bigInteger('rate_id');
-            $table->bigInteger('bank_id');
-            $table->bigInteger('bank_loan_id');
+            $table->string('id', 20);
+            $table->string('rate_id', 20);
+            $table->string('bank_id', 20);
+            $table->string('bank_loan_id', 20);
             $table->integer('year');
             $table->enum('calculate', ['add', 'subtract']);
             $table->double('interest');

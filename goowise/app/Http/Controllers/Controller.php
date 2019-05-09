@@ -34,14 +34,16 @@ abstract class Controller extends BaseController
 
     public function unique_id()
     {
-        $random = str_pad(rand(1, 999999999), 9, 0, STR_PAD_LEFT);
-        return time().$random;
+        // $random = str_pad(rand(1, 999999999), 9, 0, STR_PAD_LEFT);
+        $random = strtoupper(str_random(6));
+        return (microtime(true) * 10000).$random;
     }
 
     public function unique_token()
     {
-        $random = str_pad(rand(1, 999999999), 9, 0, STR_PAD_LEFT);
-        return md5(time().$random);
+        // $random = str_pad(rand(1, 999999999), 9, 0, STR_PAD_LEFT);
+        $random = strtoupper(str_random(6));
+        return md5((microtime(true) * 10000).$random);
     }
 
     public function check_admin($api_token)
