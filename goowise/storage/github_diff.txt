@@ -1,4 +1,4 @@
-Showing  with 27,252 additions and 5,937 deletions.
+
 +21 −0  goowise/app/Console/Commands/Github.php
 +1 −11  goowise/app/Console/Kernel.php
 +146 −0  goowise/app/Http/Controllers/Admin/Home.php

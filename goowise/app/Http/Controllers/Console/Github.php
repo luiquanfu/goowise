@@ -11,8 +11,8 @@ class Github extends Controller
 {
     public function index()
     {
-        $local_path = 'D:\xampp\htdocs\goowise';
-        $server_path = 'D:\xampp\htdocs\goowise_www';
+        $local_path = 'C:\xampp\htdocs\goowise';
+        $server_path = 'C:\xampp\htdocs\goowise_www';
 
         // delete everything inside server_path
         if(is_dir($server_path))
@@ -61,8 +61,11 @@ class Github extends Controller
 				mkdir($path['dirname'], 0777, true);
 			}
 
-			// copy file
-            copy($from, $to);
+            // copy file
+            if(file_exists($from))
+            {
+                copy($from, $to);
+            }
         }
     }
 
