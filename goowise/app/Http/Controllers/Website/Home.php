@@ -154,4 +154,11 @@ class Home extends Controller
         $response['message'] = 'Thank you for the interest. We will send a confirmation email to you!';
         return $response;
     }
+
+    public function test()
+    {
+        $last_visit = array();
+        $last_visit['page'] = 'bank_listing';
+        return json_encode($last_visit);
+    }
 }

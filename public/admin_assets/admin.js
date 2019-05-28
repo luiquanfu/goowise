@@ -63,7 +63,46 @@ function initialize()
         }
 
         initialize_display();
-        dashboard_index();
+
+        var admin = response.admin;
+        var last_visit = admin.last_visit;
+        if(last_visit == '')
+        {
+            dashboard_index();
+            return;
+        }
+
+        last_visit = JSON.parse(last_visit);
+        if(last_visit.page == 'dashboard_listing')
+        {
+            dashboard_index();
+            return;
+        }
+        if(last_visit.page == 'package_listing')
+        {
+            package_index();
+            return;
+        }
+        if(last_visit.page == 'rate_listing')
+        {
+            rate_index();
+            return;
+        }
+        if(last_visit.page == 'building_type_listing')
+        {
+            building_type_index();
+            return;
+        }
+        if(last_visit.page == 'bank_listing')
+        {
+            bank_index();
+            return;
+        }
+        if(last_visit.page == 'bank_loan_listing')
+        {
+            bank_loan_index();
+            return;
+        }
 	}
     $.ajax(ajax);
 }
@@ -104,7 +143,9 @@ function initialize_display()
     html += '<section class="sidebar">';
     html += '<ul class="sidebar-menu" data-widget="tree">';
     html += '<li><a href="#" onclick="dashboard_index()"><i class="fa fa-dashboard"></i> <span>Dashboard</span></a></li>';
+    html += '<li><a href="#" onclick="package_index()"><i class="fa fa-building-o"></i> <span>Package</span></a></li>';
     html += '<li><a href="#" onclick="rate_index()"><i class="fa fa-object-group"></i> <span>Rate</span></a></li>';
+    html += '<li><a href="#" onclick="building_type_index()"><i class="fa fa-building"></i> <span>Building Type</span></a></li>';
     html += '<li><a href="#" onclick="bank_index()"><i class="fa fa-bank"></i> <span>Bank</span></a></li>';
     html += '<li><a href="#" onclick="bank_loan_index()"><i class="fa fa-th"></i> <span>Bank Loans</span></a></li>';
     html += '<li><a href="#" onclick="testing()"><i class="fa fa-fire"></i> <span>Testing</span></a></li>';
@@ -126,6 +167,11 @@ function initialize_display()
 
     $('#app').html(html);
     $('body').layout('fix');
+}
+
+function testing()
+{
+    $('#content').html('testing');
 }
 
 function login_display()
@@ -208,7 +254,7 @@ function login_submit()
         
         $('#result').html('<div class="text-green">' + message + '</div>');
         initialize_display();
-        admin_display();
+        dashboard_index();
 	}
     $.ajax(ajax);
 }
@@ -313,14 +359,31 @@ function admin_display()
 
 function dashboard_index()
 {
+    app_data = {};
+    app_data.filter_bank_id = '';
+    app_data.filter_package_id = '';
+    dashboard_list();
+}
+
+function dashboard_filter()
+{
+    app_data.filter_bank_id = $('#filter_bank_id').val();
+    app_data.filter_package_id = $('#filter_package_id').val();
+    dashboard_list();
+}
+
+function dashboard_list()
+{
     loading_show();
 
     var data = {};
     data.api_token = api_token;
+    data.filter_bank_id = app_data.filter_bank_id;
+    data.filter_package_id = app_data.filter_package_id;
     data = JSON.stringify(data);
 
     var ajax = {};
-	ajax.url = app_url + '/admin/dashboard/list';
+	ajax.url = app_url + '/admin/dashboard/listing';
 	ajax.data = data;
 	ajax.type = 'post';
 	ajax.contentType = 'application/json; charset=utf-8';
@@ -336,6 +399,8 @@ function dashboard_index()
             return;
         }
 
+        var dashboards = response.dashboards;
+        var packages = response.packages;
         var banks = response.banks;
         var html = '';
 
@@ -347,33 +412,99 @@ function dashboard_index()
         html += '</h1>';
         html += '</section>';
 
+        // filter start
+        html += '<section class="content">';
+        html += '<div class="row">';
+        html += '<div class="col-md-12">';
+        html += '<div class="box box-primary">';
+        html += '<div class="box-header with-border">';
+        html += '<h3 class="box-title">Filters</h3>';
+        html += '</div>';
+        html += '<div class="box-body">';
+
+        // filter bank_id
+        html += '<div class="form-group">';
+        html += '<label>Bank</label>';
+        html += '<select id="filter_bank_id" class="form-control select2" style="width: 100%;">';
+        html += '<option value="">All Banks</option>';
         for(i in banks)
         {
             var bank = banks[i];
+            var html_selected = '';
+            if(bank.id == app_data.filter_bank_id)
+            {
+                html_selected = 'selected';
+            }
+            html += '<option value="' + bank.id + '" ' + html_selected + '>' + bank.name + '</option>';
+        }
+        html += '</select>';
+        html += '</div>';
+
+        // filter package_id
+        html += '<div class="form-group">';
+        html += '<label>Package</label>';
+        html += '<select id="filter_package_id" class="form-control select2" style="width: 100%;">';
+        html += '<option value="">All Packages</option>';
+        for(i in packages)
+        {
+            var package = packages[i];
+            var html_selected = '';
+            if(package.id == app_data.filter_package_id)
+            {
+                html_selected = 'selected';
+            }
+            html += '<option value="' + package.id + '" ' + html_selected + '>' + package.name + '</option>';
+        }
+        html += '</select>';
+        html += '</div>';
+
+        // filter end
+        html += '</div>';
+        html += '<div class="box-footer">';
+        html += '<div class="btn btn-primary" onclick="dashboard_filter()">Filter</button>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</section>';
+
+        // list dashboard
+        for(i in dashboards)
+        {
+            var dashboard = dashboards[i];
+            var bank_loans = dashboard.bank_loans;
+
+            if(bank_loans.length == 0)
+            {
+                continue;
+            }
 
             html += '<section class="content">';
             html += '<div class="row">';
             html += '<div class="col-xs-12">';
             html += '<div class="box box-primary">';
             html += '<div class="box-header">';
-            html += '<h3 class="box-title">' + bank.name + '</h3>';
+            html += '<h3 class="box-title">' + dashboard.name + '</h3>';
             html += '</div>';
             html += '<div class="box-body table-responsive no-padding">';
             html += '<table class="table table-hover">';
             html += '<tr>';
-            html += '<th>Type</th>';
+            html += '<th>Bank</th>';
+            html += '<th>Minimum Loan</th>';
+            html += '<th>Loan</th>';
             html += '<th>Lock Period</th>';
             html += '<th>Year</th>';
             html += '<th>Rate</th>';
             html += '<th>Interest Rate</th>';
             html += '</tr>';
 
-            var bank_loans = bank.bank_loans;
             for(i in bank_loans)
             {
                 var bank_loan = bank_loans[i];
 
                 html += '<tr>';
+                html += '<td>' + bank_loan.bank_name + '</td>';
+                html += '<td>' + bank_loan.minimum_loan + '</td>';
                 html += '<td>' + bank_loan.name + '</td>';
                 html += '<td>' + bank_loan.lock_period + '</td>';
 
@@ -385,8 +516,7 @@ function dashboard_index()
                     if(j != 0)
                     {
                         html += '<tr>';
-                        html += '<td></td>';
-                        html += '<td></td>';
+                        html += '<td colspan="4"></td>';
                     }
                     html += '<td>' + bank_rate.year + '</td>';
                     html += '<td>' + bank_rate.formula + '</td>';
@@ -410,6 +540,421 @@ function dashboard_index()
             html += '</section>';
         }
         $('#content').html(html);
+        
+        var options = {};
+        options.minimumResultsForSearch = -1;
+        $('.select2').select2(options);
+	}
+    $.ajax(ajax);
+}
+
+function package_index()
+{
+    app_data = {};
+    app_data.page = 1;
+    app_data.sort = 'name';
+    app_data.direction = 'asc';
+    app_data.filter_name = '';
+    package_list();
+}
+
+function package_list()
+{
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.page = app_data.page;
+    data.sort = app_data.sort;
+    data.direction = app_data.direction;
+    data.filter_name = app_data.filter_name;
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/package/listing';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+
+        var packages = response.packages;
+        var total_pages = response.total_pages;
+        var current_page = response.current_page;
+        var html = '';
+
+        // header
+        html += '<section class="content-header">';
+        html += '<h1>';
+        html += 'Package Management';
+        html += '<small>Listing of all Packages</small>';
+        html += '</h1>';
+        html += '</section>';
+
+        // filter packages
+        html += '<section class="content">';
+        html += '<div class="row">';
+        html += '<div class="col-md-12">';
+        html += '<div class="box box-primary">';
+        html += '<div class="box-header with-border">';
+        html += '<h3 class="box-title">Filters</h3>';
+        html += '</div>';
+        html += '<div class="box-body">';
+        html += '<div class="form-group">';
+        html += '<label>Package Name</label>';
+        html += '<input id="filter_name" type="text" class="form-control" value="' + app_data.filter_name + '">';
+        html += '</div>';
+        html += '</div>';
+        html += '<div class="box-footer">';
+        html += '<div class="btn btn-primary" onclick="package_filter()">Filter</button>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</section>';
+
+        // create packages
+        html += '<div class="row">';
+        html += '<div class="col-md-12">';
+        html += '<div class="width15"></div>';
+        html += '<div class="btn btn-success" onclick="package_create()">Create Package</div>';
+        html += '</div>';
+        html += '</div>';
+
+        // list packages
+        html += '<section class="content">';
+        html += '<div class="row">';
+        html += '<div class="col-xs-12">';
+        html += '<div class="box box-primary">';
+        html += '<div class="box-header">';
+        html += '<h3 class="box-title">Package List</h3>';
+        html += '</div>';
+        html += '<div class="box-body table-responsive no-padding">';
+        html += '<table class="table table-hover">';
+        html += '<tr>';
+        html += '<th role="button" onclick="package_sorting(\'name\')">Name</th>';
+        html += '<th>Actions</th>';
+        html += '</tr>';
+        for(i in packages)
+        {
+            var package = packages[i];
+
+            html += '<tr>';
+            html += '<td>' + package.name + '</td>';
+            html += '<td>';
+            html += '<div class="btn btn-primary" onclick="package_edit(\'' + package.id + '\')"><i class="fa fa-edit"></i></div>';
+            html += '<div class="width5"></div>';
+            html += '<div class="btn btn-danger" onclick="package_remove(\'' + package.id + '\')"><i class="fa fa-trash"></i></div>';
+            html += '</td>';
+            html += '</tr>';
+        }
+        html += '</table>';
+        html += '</div>';
+        html += '<div class="box-footer clearfix">';
+        html += '<ul class="pagination pagination-sm no-margin pull-right">';
+        for(var i = 1; i <= total_pages; i++)
+        {
+            var html_page = '<a href="#" onclick="package_paging(' + i + ')">' + i + '</a>';
+            if(i == current_page)
+            {
+                html_page = '<li><span>' + i + '</span></li>';
+            }
+            html += '<li>' + html_page + '</li>';
+        }
+        html += '</ul>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</section>';
+        $('#content').html(html);
+	}
+    $.ajax(ajax);
+}
+
+function package_filter()
+{
+    app_data.filter_name = $('#filter_name').val();
+    app_data.page = 1;
+    package_list();
+}
+
+function package_paging(page)
+{
+    app_data.page = page;
+    package_list();
+}
+
+function package_sorting(sort)
+{
+    if(sort == app_data.sort)
+    {
+        if(app_data.direction == 'asc')
+        {
+            app_data.direction = 'desc';
+        }
+        else
+        {
+            app_data.direction = 'asc';
+        }
+    }
+    if(sort != app_data.sort)
+    {
+        app_data.sort = sort;
+        app_data.direction = 'asc';
+    }
+    package_list();
+}
+
+function package_create()
+{
+    var html = '';
+
+    // start
+    html += '<section class="content">';
+    html += '<div class="row">';
+    html += '<div class="col-md-12">';
+    html += '<div class="box box-primary">';
+    html += '<div class="box-header with-border">';
+    html += '<h3 class="box-title">Add Package</h3>';
+    html += '</div>';
+    html += '<div class="box-body">';
+
+    // name
+    html += '<div class="form-group">';
+    html += '<label>Package Name</label>';
+    html += '<input id="name" type="text" class="form-control">';
+    html += '</div>';
+
+    // end
+    html += '</div>';
+    html += '<div class="box-footer">';
+    html += '<div class="btn btn-success" onclick="package_add()">Add Package</button>';
+    html += '</div>';
+    html += '<div id="result"></div>';
+    html += '</div>';
+    html += '</div>';
+    html += '</div>';
+    html += '</section>';
+
+    $('#content').html(html);
+}
+
+function package_add()
+{
+    $('#result').html('<span class="text-light-blue">Please wait...</span>');
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.name = $('#name').val();
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/package/add';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        var message = response.message;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+
+        if(error != 0)
+        {
+            $('#result').html('<span class="text-red">' + message + '</span>');
+            return;
+        }
+
+        $('#result').html('<span class="text-green">' + message + '</span>');
+        package_list();
+	}
+    $.ajax(ajax);
+}
+
+function package_edit(package_id)
+{
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.package_id = package_id;
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/package/edit';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        var message = response.message;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+		
+		if(error != 0)
+		{
+			$('#content').html(message);
+			return;
+		}
+		
+        var package = response.package;
+        var html = '';
+
+        // start
+        html += '<section class="content">';
+        html += '<div class="row">';
+        html += '<div class="col-md-12">';
+        html += '<div class="box box-primary">';
+        html += '<div class="box-header with-border">';
+        html += '<h3 class="box-title">Edit Package</h3>';
+        html += '</div>';
+        html += '<div class="box-body">';
+
+        // id
+        html += '<input id="package_id" type="hidden" value="' + package.id + '">';
+
+        // name
+        html += '<div class="form-group">';
+        html += '<label>Package Name</label>';
+        html += '<input id="name" type="text" class="form-control" value="' + package.name + '">';
+        html += '</div>';
+
+        // end
+        html += '</div>';
+        html += '<div class="box-footer">';
+        html += '<div class="btn btn-primary" onclick="package_update()">Update Package</button>';
+        html += '</div>';
+        html += '<div id="result"></div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</section>';
+
+        $('#content').html(html);
+	}
+    $.ajax(ajax);
+}
+
+function package_update()
+{
+    $('#result').html('<span class="text-light-blue">Please wait...</span>');
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.package_id = $('#package_id').val();
+    data.name = $('#name').val();
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/package/update';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        var message = response.message;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+		
+		if(error == 1)
+		{
+			$('#result').html('<span class="text-red">' + message + '</span>');
+			return;
+		}
+		
+        $('#result').html('<span class="text-green">' + message + '</span>');
+        package_list();
+	}
+    $.ajax(ajax);
+}
+
+function package_remove(package_id)
+{
+    var html = '';
+    html += '<div class="box box-danger">';
+    html += '<div class="box-header with-border">';
+    html += '<h3 class="box-title">Click Confirm to Delete</h3>';
+    html += '</div>';
+    html += '<div class="box-body">';
+    html += '<div class="btn btn-secondary" onclick="popup_hide()">Cancel</div>';
+    html += '<div class="width5"></div>';
+    html += '<div class="btn btn-danger" onclick="package_destroy(\'' + package_id + '\')">Confirm</div>';
+    html += '<div id="result"></div>';
+    html += '</div>';
+    html += '</div>';
+    popup_show(html);
+}
+
+function package_destroy(package_id)
+{
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.package_id = package_id;
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/package/destroy';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        var message = response.message;
+        
+        if(error == 99)
+        {
+            window.location.href = login_url;
+            return;
+        }
+		
+		if(error == 1)
+		{
+			$('#result').html('<span class="text-red">' + message + '</span>');
+			return;
+		}
+		
+        $('#result').html('<span class="text-green">' + message + '</span>');
+
+        popup_hide();
+        package_list();
 	}
     $.ajax(ajax);
 }
@@ -437,7 +982,7 @@ function rate_list()
     data = JSON.stringify(data);
 
     var ajax = {};
-	ajax.url = app_url + '/admin/rate/list';
+	ajax.url = app_url + '/admin/rate/listing';
 	ajax.data = data;
 	ajax.type = 'post';
 	ajax.contentType = 'application/json; charset=utf-8';
@@ -507,8 +1052,8 @@ function rate_list()
         html += '<div class="box-body table-responsive no-padding">';
         html += '<table class="table table-hover">';
         html += '<tr>';
-        html += '<th onclick="rate_sorting(\'name\')">Name</th>';
-        html += '<th onclick="rate_sorting(\'interest\')">Interest</th>';
+        html += '<th role="button" onclick="rate_sorting(\'name\')">Name</th>';
+        html += '<th role="button" onclick="rate_sorting(\'interest\')">Interest</th>';
         html += '<th>Actions</th>';
         html += '</tr>';
         for(i in rates)
@@ -837,6 +1382,417 @@ function rate_destroy(rate_id)
     $.ajax(ajax);
 }
 
+function building_type_index()
+{
+    app_data = {};
+    app_data.page = 1;
+    app_data.sort = 'name';
+    app_data.direction = 'asc';
+    app_data.filter_name = '';
+    building_type_list();
+}
+
+function building_type_list()
+{
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.page = app_data.page;
+    data.sort = app_data.sort;
+    data.direction = app_data.direction;
+    data.filter_name = app_data.filter_name;
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/building_type/listing';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+
+        var building_types = response.building_types;
+        var total_pages = response.total_pages;
+        var current_page = response.current_page;
+        var html = '';
+
+        // header
+        html += '<section class="content-header">';
+        html += '<h1>';
+        html += 'Building Type Management';
+        html += '<small>Listing of all Building Types</small>';
+        html += '</h1>';
+        html += '</section>';
+
+        // filter building_types
+        html += '<section class="content">';
+        html += '<div class="row">';
+        html += '<div class="col-md-12">';
+        html += '<div class="box box-primary">';
+        html += '<div class="box-header with-border">';
+        html += '<h3 class="box-title">Filters</h3>';
+        html += '</div>';
+        html += '<div class="box-body">';
+        html += '<div class="form-group">';
+        html += '<label>Building Type Name</label>';
+        html += '<input id="filter_name" type="text" class="form-control" value="' + app_data.filter_name + '">';
+        html += '</div>';
+        html += '</div>';
+        html += '<div class="box-footer">';
+        html += '<div class="btn btn-primary" onclick="building_type_filter()">Filter</button>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</section>';
+
+        // create building_types
+        html += '<div class="row">';
+        html += '<div class="col-md-12">';
+        html += '<div class="width15"></div>';
+        html += '<div class="btn btn-success" onclick="building_type_create()">Create Building Type</div>';
+        html += '</div>';
+        html += '</div>';
+
+        // list building_types
+        html += '<section class="content">';
+        html += '<div class="row">';
+        html += '<div class="col-xs-12">';
+        html += '<div class="box box-primary">';
+        html += '<div class="box-header">';
+        html += '<h3 class="box-title">Building Type List</h3>';
+        html += '</div>';
+        html += '<div class="box-body table-responsive no-padding">';
+        html += '<table class="table table-hover">';
+        html += '<tr>';
+        html += '<th role="button" onclick="building_type_sorting(\'name\')">Name</th>';
+        html += '<th>Actions</th>';
+        html += '</tr>';
+        for(i in building_types)
+        {
+            var building_type = building_types[i];
+
+            html += '<tr>';
+            html += '<td>' + building_type.name + '</td>';
+            html += '<td>';
+            html += '<div class="btn btn-primary" onclick="building_type_edit(\'' + building_type.id + '\')"><i class="fa fa-edit"></i></div>';
+            html += '<div class="width5"></div>';
+            html += '<div class="btn btn-danger" onclick="building_type_remove(\'' + building_type.id + '\')"><i class="fa fa-trash"></i></div>';
+            html += '</td>';
+            html += '</tr>';
+        }
+        html += '</table>';
+        html += '</div>';
+        html += '<div class="box-footer clearfix">';
+        html += '<ul class="pagination pagination-sm no-margin pull-right">';
+        for(var i = 1; i <= total_pages; i++)
+        {
+            var html_page = '<a href="#" onclick="building_type_paging(' + i + ')">' + i + '</a>';
+            if(i == current_page)
+            {
+                html_page = '<li><span>' + i + '</span></li>';
+            }
+            html += '<li>' + html_page + '</li>';
+        }
+        html += '</ul>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</section>';
+        $('#content').html(html);
+	}
+    $.ajax(ajax);
+}
+
+function building_type_filter()
+{
+    app_data.filter_name = $('#filter_name').val();
+    app_data.page = 1;
+    building_type_list();
+}
+
+function building_type_paging(page)
+{
+    app_data.page = page;
+    building_type_list();
+}
+
+function building_type_sorting(sort)
+{
+    if(sort == app_data.sort)
+    {
+        if(app_data.direction == 'asc')
+        {
+            app_data.direction = 'desc';
+        }
+        else
+        {
+            app_data.direction = 'asc';
+        }
+    }
+    if(sort != app_data.sort)
+    {
+        app_data.sort = sort;
+        app_data.direction = 'asc';
+    }
+    building_type_list();
+}
+
+function building_type_create()
+{
+    var html = '';
+
+    // start
+    html += '<section class="content">';
+    html += '<div class="row">';
+    html += '<div class="col-md-12">';
+    html += '<div class="box box-primary">';
+    html += '<div class="box-header with-border">';
+    html += '<h3 class="box-title">Add Building Type</h3>';
+    html += '</div>';
+    html += '<div class="box-body">';
+
+    // name
+    html += '<div class="form-group">';
+    html += '<label>Building Type Name</label>';
+    html += '<input id="name" type="text" class="form-control">';
+    html += '</div>';
+
+    // end
+    html += '</div>';
+    html += '<div class="box-footer">';
+    html += '<div class="btn btn-success" onclick="building_type_add()">Add Building Type</button>';
+    html += '</div>';
+    html += '<div id="result"></div>';
+    html += '</div>';
+    html += '</div>';
+    html += '</div>';
+    html += '</section>';
+
+    $('#content').html(html);
+}
+
+function building_type_add()
+{
+    $('#result').html('<span class="text-light-blue">Please wait...</span>');
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.name = $('#name').val();
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/building_type/add';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        var message = response.message;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+
+        if(error != 0)
+        {
+            $('#result').html('<span class="text-red">' + message + '</span>');
+            return;
+        }
+
+        $('#result').html('<span class="text-green">' + message + '</span>');
+        building_type_list();
+	}
+    $.ajax(ajax);
+}
+
+function building_type_edit(building_type_id)
+{
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.building_type_id = building_type_id;
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/building_type/edit';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        var message = response.message;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+		
+		if(error != 0)
+		{
+			$('#content').html(message);
+			return;
+		}
+		
+        var building_type = response.building_type;
+        var html = '';
+
+        // start
+        html += '<section class="content">';
+        html += '<div class="row">';
+        html += '<div class="col-md-12">';
+        html += '<div class="box box-primary">';
+        html += '<div class="box-header with-border">';
+        html += '<h3 class="box-title">Edit Building Type</h3>';
+        html += '</div>';
+        html += '<div class="box-body">';
+
+        // id
+        html += '<input id="building_type_id" type="hidden" value="' + building_type.id + '">';
+
+        // name
+        html += '<div class="form-group">';
+        html += '<label>Building Type Name</label>';
+        html += '<input id="name" type="text" class="form-control" value="' + building_type.name + '">';
+        html += '</div>';
+
+        // end
+        html += '</div>';
+        html += '<div class="box-footer">';
+        html += '<div class="btn btn-primary" onclick="building_type_update()">Update Building Type</button>';
+        html += '</div>';
+        html += '<div id="result"></div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</section>';
+
+        $('#content').html(html);
+	}
+    $.ajax(ajax);
+}
+
+function building_type_update()
+{
+    $('#result').html('<span class="text-light-blue">Please wait...</span>');
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.building_type_id = $('#building_type_id').val();
+    data.name = $('#name').val();
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/building_type/update';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        var message = response.message;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+		
+		if(error == 1)
+		{
+			$('#result').html('<span class="text-red">' + message + '</span>');
+			return;
+		}
+		
+        $('#result').html('<span class="text-green">' + message + '</span>');
+        building_type_list();
+	}
+    $.ajax(ajax);
+}
+
+function building_type_remove(building_type_id)
+{
+    var html = '';
+    html += '<div class="box box-danger">';
+    html += '<div class="box-header with-border">';
+    html += '<h3 class="box-title">Click Confirm to Delete</h3>';
+    html += '</div>';
+    html += '<div class="box-body">';
+    html += '<div class="btn btn-secondary" onclick="popup_hide()">Cancel</div>';
+    html += '<div class="width5"></div>';
+    html += '<div class="btn btn-danger" onclick="building_type_destroy(\'' + building_type_id + '\')">Confirm</div>';
+    html += '<div id="result"></div>';
+    html += '</div>';
+    html += '</div>';
+    popup_show(html);
+}
+
+function building_type_destroy(building_type_id)
+{
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.building_type_id = building_type_id;
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/building_type/destroy';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        var message = response.message;
+        
+        if(error == 99)
+        {
+            window.location.href = login_url;
+            return;
+        }
+		
+		if(error == 1)
+		{
+			$('#result').html('<span class="text-red">' + message + '</span>');
+			return;
+		}
+		
+        $('#result').html('<span class="text-green">' + message + '</span>');
+
+        popup_hide();
+        building_type_list();
+	}
+    $.ajax(ajax);
+}
+
 function bank_index()
 {
     app_data = {};
@@ -860,7 +1816,7 @@ function bank_list()
     data = JSON.stringify(data);
 
     var ajax = {};
-	ajax.url = app_url + '/admin/bank/list';
+	ajax.url = app_url + '/admin/bank/listing';
 	ajax.data = data;
 	ajax.type = 'post';
 	ajax.contentType = 'application/json; charset=utf-8';
@@ -928,7 +1884,7 @@ function bank_list()
         html += '<div class="box-body table-responsive no-padding">';
         html += '<table class="table table-hover">';
         html += '<tr>';
-        html += '<th onclick="bank_sorting(\'name\')">Name</th>';
+        html += '<th role="button" onclick="bank_sorting(\'name\')">Name</th>';
         html += '<th>Actions</th>';
         html += '</tr>';
         for(i in banks)
@@ -1285,7 +2241,7 @@ function bank_loan_list()
     data = JSON.stringify(data);
 
     var ajax = {};
-	ajax.url = app_url + '/admin/bank_loan/list';
+	ajax.url = app_url + '/admin/bank_loan/listing';
 	ajax.data = data;
 	ajax.type = 'post';
 	ajax.contentType = 'application/json; charset=utf-8';
@@ -1302,6 +2258,8 @@ function bank_loan_list()
         }
 
         var bank_loans = response.bank_loans;
+        var total_pages = response.total_pages;
+        var current_page = response.current_page;
         var html = '';
 
         // header
@@ -1354,8 +2312,9 @@ function bank_loan_list()
         html += '<table class="table table-hover">';
         html += '<tr>';
         html += '<th>Bank</th>';
-        html += '<th onclick="bank_loan_sorting(\'name\')">Name</th>';
-        html += '<th onclick="bank_loan_sorting(\'lock_period\')">Lock Period</th>';
+        html += '<th>Package</th>';
+        html += '<th role="button" onclick="bank_loan_sorting(\'name\')">Name</th>';
+        html += '<th role="button" onclick="bank_loan_sorting(\'lock_period\')">Lock Period</th>';
         html += '<th>Actions</th>';
         html += '</tr>';
         for(i in bank_loans)
@@ -1364,6 +2323,7 @@ function bank_loan_list()
 
             html += '<tr>';
             html += '<td>' + bank_loan.bank_name + '</td>';
+            html += '<td>' + bank_loan.package_name + '</td>';
             html += '<td>' + bank_loan.name + '</td>';
             html += '<td>' + bank_loan.lock_period + ' years</td>';
             html += '<td>';
@@ -1374,6 +2334,19 @@ function bank_loan_list()
             html += '</tr>';
         }
         html += '</table>';
+        html += '</div>';
+        html += '<div class="box-footer clearfix">';
+        html += '<ul class="pagination pagination-sm no-margin pull-right">';
+        for(var i = 1; i <= total_pages; i++)
+        {
+            var html_page = '<a href="#" onclick="bank_loan_paging(' + i + ')">' + i + '</a>';
+            if(i == current_page)
+            {
+                html_page = '<li><span>' + i + '</span></li>';
+            }
+            html += '<li>' + html_page + '</li>';
+        }
+        html += '</ul>';
         html += '</div>';
         html += '</div>';
         html += '</div>';
@@ -1452,6 +2425,8 @@ function bank_loan_create()
 		
         var banks = response.banks;
         var rates = response.rates;
+        var packages = response.packages;
+        var building_types = response.building_types;
         var html = '';
 
         app_data.rates = rates;
@@ -1479,6 +2454,19 @@ function bank_loan_create()
         html += '</select>';
         html += '</div>';
 
+        // package_id
+        html += '<div class="form-group">';
+        html += '<label>Package</label>';
+        html += '<select id="package_id" class="form-control select2" style="width: 100%;">';
+        html += '<option value="">Select Package</option>';
+        for(i in packages)
+        {
+            var package = packages[i];
+            html += '<option value="' + package.id + '">' + package.name + '</option>';
+        }
+        html += '</select>';
+        html += '</div>';
+
         // name
         html += '<div class="form-group">';
         html += '<label>Bank Loan Name</label>';
@@ -1491,6 +2479,24 @@ function bank_loan_create()
         html += '<input id="lock_period" type="text" class="form-control">';
         html += '</div>';
 
+        // minimum_loan
+        html += '<div class="form-group">';
+        html += '<label>Minimum Loan</label>';
+        html += '<input id="minimum_loan" type="text" class="form-control">';
+        html += '</div>';
+
+        // bank_loan_buildings
+        html += '<div class="form-group">';
+        html += '<label>Building Types</label>';
+        html += '<select id="building_types" class="form-control select2" multiple="multiple" style="width: 100%;">';
+        for(i in building_types)
+        {
+            var building_type = building_types[i];
+            html += '<option value="' + building_type.id + '">' + building_type.name + '</option>';
+        }
+        html += '</select>';
+        html += '</div>';
+
         // bank_rates
         app_data.new_bank_rate_ids = [];
         app_data.edit_bank_rate_ids = [];
@@ -1498,7 +2504,7 @@ function bank_loan_create()
         html += '<div class="box-header with-border">';
         html += '<h3 class="box-title">Bank Rates</h3>';
         html += '</div>';
-        html += '<div class="box-body">';
+        html += '<div class="box-body table-responsive no-padding">';
         html += '<table id="table_bank_rates" class="table table-bordered">';
         html += '<tr>';
         html += '<th>Year</th>';
@@ -1537,8 +2543,18 @@ function bank_loan_add()
     var data = {};
     data.api_token = api_token;
     data.bank_id = $('#bank_id').val();
+    data.package_id = $('#package_id').val();
     data.name = $('#name').val();
     data.lock_period = $('#lock_period').val();
+    data.minimum_loan = $('#minimum_loan').val();
+    var building_types = [];
+	$.each($('#building_types option:selected'), function()
+	{
+        var building_type = {};
+        building_type.id = $(this).val();
+		building_types.push(building_type);
+	});
+    data.building_types = building_types;
     var new_bank_rates = [];
     for(i in app_data.new_bank_rate_ids)
     {
@@ -1617,9 +2633,12 @@ function bank_loan_edit(bank_loan_id)
 			return;
 		}
 		
+        var packages = response.packages;
         var rates = response.rates;
         var banks = response.banks;
+        var building_types = response.building_types;
         var bank_loan = response.bank_loan;
+        var bank_loan_buildings = response.bank_loan_buildings;
         var bank_rates = response.bank_rates;
         var html = '';
 
@@ -1656,6 +2675,24 @@ function bank_loan_edit(bank_loan_id)
         html += '</select>';
         html += '</div>';
 
+        // package_id
+        html += '<div class="form-group">';
+        html += '<label>Package</label>';
+        html += '<select id="package_id" class="form-control select2" style="width: 100%;">';
+        html += '<option value="">Select Package</option>';
+        for(i in packages)
+        {
+            var package = packages[i];
+            var html_selected = '';
+            if(package.id == bank_loan.package_id)
+            {
+                html_selected = 'selected';
+            }
+            html += '<option value="' + package.id + '" ' + html_selected + '>' + package.name + '</option>';
+        }
+        html += '</select>';
+        html += '</div>';
+
         // name
         html += '<div class="form-group">';
         html += '<label>Bank Loan Name</label>';
@@ -1668,6 +2705,33 @@ function bank_loan_edit(bank_loan_id)
         html += '<input id="lock_period" type="text" class="form-control" value="' + bank_loan.lock_period + '">';
         html += '</div>';
 
+        // minimum_loan
+        html += '<div class="form-group">';
+        html += '<label>Minimum Loan</label>';
+        html += '<input id="minimum_loan" type="text" class="form-control" value="' + bank_loan.minimum_loan + '">';
+        html += '</div>';
+
+        // bank_loan_buildings
+        html += '<div class="form-group">';
+        html += '<label>Building Types</label>';
+        html += '<select id="building_types" class="form-control select2" multiple="multiple" style="width: 100%;">';
+        for(i in building_types)
+        {
+            var building_type = building_types[i];
+            var html_selected = '';
+            for(j in bank_loan_buildings)
+            {
+                var bank_loan_building = bank_loan_buildings[j];
+                if(bank_loan_building.building_type_id == building_type.id)
+                {
+                    html_selected = 'selected';
+                }
+            }
+            html += '<option value="' + building_type.id + '" ' + html_selected + '>' + building_type.name + '</option>';
+        }
+        html += '</select>';
+        html += '</div>';
+
         // bank_rates
         app_data.new_bank_rate_ids = [];
         app_data.edit_bank_rate_ids = [];
@@ -1675,8 +2739,8 @@ function bank_loan_edit(bank_loan_id)
         html += '<div class="box-header with-border">';
         html += '<h3 class="box-title">Bank Rates</h3>';
         html += '</div>';
-        html += '<div class="box-body">';
-        html += '<table id="table_bank_rates" class="table table-bordered">';
+        html += '<div class="box-body table-responsive">';
+        html += '<table id="table_bank_rates" class="table table-bordered no-padding">';
         html += '<tr>';
         html += '<th>Year</th>';
         html += '<th>Rate</th>';
@@ -1693,7 +2757,7 @@ function bank_loan_edit(bank_loan_id)
             html += '<td><input id="edit_bank_rate_year_' + bank_rate.id + '" type="text" class="form-control" value="' + bank_rate.year + '"></td>';
             html += '<td>';
             html += '<select id="edit_bank_rate_rate_id_' + bank_rate.id + '" class="form-control select2" style="width: 100%;">';
-            html += '<option value="0">NA</option>';
+            html += '<option value="">NA</option>';
             for(i in rates)
             {
                 var rate = rates[i];
@@ -1763,8 +2827,18 @@ function bank_loan_update()
     data.api_token = api_token;
     data.bank_loan_id = $('#bank_loan_id').val();
     data.bank_id = $('#bank_id').val();
+    data.package_id = $('#package_id').val();
     data.name = $('#name').val();
     data.lock_period = $('#lock_period').val();
+    data.minimum_loan = $('#minimum_loan').val();
+    var building_types = [];
+	$.each($('#building_types option:selected'), function()
+	{
+        var building_type = {};
+        building_type.id = $(this).val();
+		building_types.push(building_type);
+	});
+    data.building_types = building_types;
     var edit_bank_rates = [];
     for(i in app_data.edit_bank_rate_ids)
     {
@@ -1911,7 +2985,7 @@ function bank_rate_create()
     html += '<td><input id="new_bank_rate_year_' + bank_rate_id + '" type="text" class="form-control" value="' + current_year + '"></td>';
     html += '<td>';
     html += '<select id="new_bank_rate_rate_id_' + bank_rate_id + '" class="form-control select2" style="width: 100%;">';
-    html += '<option value="0">NA</option>';
+    html += '<option value="">NA</option>';
     for(i in app_data.rates)
     {
         var rate = app_data.rates[i];

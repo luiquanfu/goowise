@@ -9,11 +9,13 @@ use App\Http\Controllers\Controller;
 
 class Dashboard extends Controller
 {
-    public function list(Request $request)
+    public function listing(Request $request)
     {
         // set variables
         $api_token = $request->get('api_token');
-        \Log::info('Admin '.$api_token.' dashboard');
+        $filter_package_id = $request->get('filter_package_id');
+        $filter_bank_id = $request->get('filter_bank_id');
+        \Log::info('Admin '.$api_token.' list dashboard');
 
         // validate api_token
         $response = $this->check_admin($api_token);
@@ -22,10 +24,25 @@ class Dashboard extends Controller
             return $response;
         }
 
+        $admin = $response['admin'];
+
+        // update admin
+        $last_visit = array();
+        $last_visit['page'] = 'dashboard_listing';
+        $data = array();
+        $data['last_visit'] = json_encode($last_visit);
+        \DB::table('admins')->where('id', $admin->id)->update($data);
+
         // get rates
         $query = \DB::connection('mysql')->table('rates');
         $query->select('id', 'name', 'interest');
         $rates = $query->get();
+
+        // get packages
+        $query = \DB::connection('mysql')->table('packages');
+        $query->select('id', 'name');
+        $query->where('deleted_at', 0);
+        $packages = $query->get();
 
         // get banks
         $query = \DB::connection('mysql')->table('banks');
@@ -35,7 +52,14 @@ class Dashboard extends Controller
         
         // get bank_loans
         $query = \DB::connection('mysql')->table('bank_loans');
-        $query->select('id', 'bank_id', 'name', 'lock_period');
+        $select = array();
+        $select[] = 'id';
+        $select[] = 'bank_id';
+        $select[] = 'package_id';
+        $select[] = 'name';
+        $select[] = 'lock_period';
+        $select[] = 'minimum_loan';
+        $query->select($select);
         $query->where('deleted_at', 0);
         $bank_loans = $query->get();
 
@@ -57,23 +81,47 @@ class Dashboard extends Controller
         $bank_rates = $query->get();
 
         // create results
-        $result_banks = array();
-        foreach($banks as $bank)
+        $result_dashboards = array();
+        foreach($packages as $package)
         {
-            $result_bank = (object)[];
-            $result_bank->name = $bank->name;
+            $result_dashboard = (object)[];
+            $result_dashboard->name = $package->name;
             $result_bank_loans = array();
 
             foreach($bank_loans as $bank_loan)
             {
-                if($bank_loan->bank_id != $bank->id)
+                if($bank_loan->package_id != $package->id)
                 {
                     continue;
                 }
 
+                if(strlen($filter_bank_id) != 0)
+                {
+                    \Log::debug('strlen filter bank id = '.strlen($filter_bank_id));
+                    if($bank_loan->bank_id != $filter_bank_id) continue;
+                }
+                if(strlen($filter_package_id) != 0)
+                {
+                    \Log::debug('strlen filter package id = '.strlen($filter_package_id));
+                    if($bank_loan->package_id != $filter_package_id) continue;
+                }
+
+                $bank_name = '';
+                foreach($banks as $bank)
+                {
+                    if($bank->id == $bank_loan->bank_id)
+                    {
+                        $bank_name = $bank->name;
+                    }
+                }
+
                 $result_bank_loan = (object)[];
+                $result_bank_loan->bank_name = $bank_name;
                 $result_bank_loan->name = $bank_loan->name;
-                $result_bank_loan->lock_period = $bank_loan->lock_period.' Years';
+                $result_bank_loan->lock_period = $bank_loan->lock_period.' years';
+                if($bank_loan->lock_period == 0) $result_bank_loan->lock_period = 'Nil';
+                $result_bank_loan->minimum_loan = $this->wrap_currency($bank_loan->minimum_loan, '$', 'left', 0, 'minus');
+                if($bank_loan->minimum_loan == 0) $result_bank_loan->minimum_loan = 'NA';
                 $result_bank_rates = array();
 
                 foreach($bank_rates as $bank_rate)
@@ -97,7 +145,7 @@ class Dashboard extends Controller
                         }
                     }
 
-                    if($bank_rate->rate_id != 0)
+                    if($bank_rate->rate_id != '')
                     {
                         $formula = $rate_name;
                         $interest_rate = $rate_interest;
@@ -113,7 +161,6 @@ class Dashboard extends Controller
                         }
                         $formula .= $bank_rate->interest.' %';
                     }
-
                     $result_bank_rate = (object)[];
                     $result_bank_rate->year = $bank_rate->year;
                     $result_bank_rate->formula = $formula;
@@ -123,15 +170,17 @@ class Dashboard extends Controller
                 $result_bank_loan->bank_rates = $result_bank_rates;
                 $result_bank_loans[] = $result_bank_loan;
             }
-            $result_bank->bank_loans = $result_bank_loans;
-            $result_banks[] = $result_bank;
+            $result_dashboard->bank_loans = $result_bank_loans;
+            $result_dashboards[] = $result_dashboard;
         }
 
         // success
         $response = array();
         $response['error'] = 0;
         $response['message'] = 'Success';
-        $response['banks'] = $result_banks;
+        $response['dashboards'] = $result_dashboards;
+        $response['packages'] = $packages;
+        $response['banks'] = $banks;
         return $response;
     }
 }

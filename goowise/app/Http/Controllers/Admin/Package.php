@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
-class Rate extends Controller
+class Package extends Controller
 {
     public function listing(Request $request)
     {
@@ -17,9 +17,9 @@ class Rate extends Controller
         $sort = $request->get('sort');
         $direction = $request->get('direction');
         $filter_name = $request->get('filter_name');
-        $paginate = 20;
-        
-        \Log::info('Admin '.$api_token.' list rate page '.$page);
+        $paginate = 10;
+
+        \Log::info('Admin '.$api_token.' list package page '.$page);
 
         // validate api_token
         $response = $this->check_admin($api_token);
@@ -32,7 +32,7 @@ class Rate extends Controller
 
         // update admin
         $last_visit = array();
-        $last_visit['page'] = 'rate_listing';
+        $last_visit['page'] = 'package_listing';
         $data = array();
         $data['last_visit'] = json_encode($last_visit);
         \DB::table('admins')->where('id', $admin->id)->update($data);
@@ -50,7 +50,7 @@ class Rate extends Controller
         $sorts = array();
         $sorts[] = 'id';
         $sorts[] = 'name';
-        $sorts[] = 'interest';
+        $sorts[] = 'lock_period';
         if(in_array($sort, $sorts) == null)
         {
             $response = array();
@@ -71,14 +71,13 @@ class Rate extends Controller
             return $response;
         }
 
-        // get rates
-        $query = \DB::connection('mysql')->table('rates');
+        // get packages
+        $query = \DB::connection('mysql')->table('packages');
         $select = array();
         $select[] = 'id';
         $select[] = 'name';
-        $select[] = 'interest';
         $query->select($select);
-        $total_rates = $query->count();
+        $total_packages = $query->count();
         if(strlen($filter_name) != 0)
         {
             $query->where('name', 'like', '%'.$filter_name.'%');
@@ -86,15 +85,15 @@ class Rate extends Controller
         $query->where('deleted_at', 0);
         $query->orderBy($sort, $direction);
         $query->paginate($paginate);
-        $rates = $query->get();
+        $packages = $query->get();
 
         // success
         $response = array();
         $response['error'] = 0;
         $response['message'] = 'Success';
-        $response['rates'] = $rates;
-        $response['total_rates'] = $total_rates;
-        $response['total_pages'] = ceil($total_rates / $paginate);
+        $response['packages'] = $packages;
+        $response['total_packages'] = $total_packages;
+        $response['total_pages'] = ceil($total_packages / $paginate);
         $response['current_page'] = $page;
         return $response;
     }
@@ -104,9 +103,8 @@ class Rate extends Controller
         // set variables
         $api_token = $request->get('api_token');
         $name = $request->get('name');
-        $interest = $request->get('interest');
 
-        \Log::info('Admin '.$api_token.' add rate');
+        \Log::info('Admin '.$api_token.' add package');
 
         // validate api_token
         $response = $this->check_admin($api_token);
@@ -120,27 +118,18 @@ class Rate extends Controller
         {
             $response = array();
             $response['error'] = 1;
-            $response['message'] = 'Rate name is required';
+            $response['message'] = 'Package name is required';
             return $response;
         }
 
-        // validate interest
-        if(strlen($interest) == 0)
-        {
-            $response = array();
-            $response['error'] = 1;
-            $response['message'] = 'Interest is required';
-            return $response;
-        }
-
-        // insert rate
+        // insert package
+        $package_id = $this->unique_id();
         $data = array();
-        $data['id'] = $this->unique_id();
+        $data['id'] = $package_id;
         $data['name'] = $name;
-        $data['interest'] = $interest;
         $data['created_at'] = time();
         $data['updated_at'] = time();
-        \DB::table('rates')->insert($data);
+        \DB::table('packages')->insert($data);
 
         // success
         $response = array();
@@ -153,9 +142,9 @@ class Rate extends Controller
     {
         // set variables
         $api_token = $request->get('api_token');
-        $rate_id = $request->get('rate_id');
+        $package_id = $request->get('package_id');
 
-        \Log::info('Admin '.$api_token.' edit rate '.$rate_id);
+        \Log::info('Admin '.$api_token.' edit package '.$package_id);
 
         // validate api_token
         $response = $this->check_admin($api_token);
@@ -164,21 +153,20 @@ class Rate extends Controller
             return $response;
         }
 
-        // get rate
-        $query = \DB::connection('mysql')->table('rates');
+        // get package
+        $query = \DB::connection('mysql')->table('packages');
         $select = array();
         $select[] = 'id';
         $select[] = 'name';
-        $select[] = 'interest';
         $query->select($select);
-        $query->where('id', $rate_id);
-        $rate = $query->first();
+        $query->where('id', $package_id);
+        $package = $query->first();
 
         // success
         $response = array();
         $response['error'] = 0;
         $response['message'] = 'Success';
-        $response['rate'] = $rate;
+        $response['package'] = $package;
         return $response;
     }
 
@@ -186,11 +174,10 @@ class Rate extends Controller
     {
         // set variables
         $api_token = $request->get('api_token');
-        $rate_id = $request->get('rate_id');
+        $package_id = $request->get('package_id');
         $name = $request->get('name');
-        $interest = $request->get('interest');
 
-        \Log::info('Admin '.$api_token.' update rate '.$rate_id);
+        \Log::info('Admin '.$api_token.' update package '.$package_id);
 
         // validate api_token
         $response = $this->check_admin($api_token);
@@ -204,25 +191,15 @@ class Rate extends Controller
         {
             $response = array();
             $response['error'] = 1;
-            $response['message'] = 'Rate name is required';
+            $response['message'] = 'Package name is required';
             return $response;
         }
 
-        // validate interest
-        if(strlen($interest) == 0)
-        {
-            $response = array();
-            $response['error'] = 1;
-            $response['message'] = 'Interest is required';
-            return $response;
-        }
-        
-        // update rate
+        // update package
         $data = array();
         $data['name'] = $name;
-        $data['interest'] = $interest;
         $data['updated_at'] = time();
-        \DB::table('rates')->where('id', $rate_id)->update($data);
+        \DB::table('packages')->where('id', $package_id)->update($data);
 
         // success
         $response = array();
@@ -235,9 +212,9 @@ class Rate extends Controller
     {
         // set variables
         $api_token = $request->get('api_token');
-        $rate_id = $request->get('rate_id');
+        $package_id = $request->get('package_id');
 
-        \Log::info('Admin '.$api_token.' destroy rate '.$rate_id);
+        \Log::info('Admin '.$api_token.' destroy package '.$package_id);
 
         // validate api_token
         $response = $this->check_admin($api_token);
@@ -246,10 +223,10 @@ class Rate extends Controller
             return $response;
         }
 
-        // delete rate
+        // delete package
         $data = array();
         $data['deleted_at'] = time();
-        \DB::table('rates')->where('id', $rate_id)->update($data);
+        \DB::table('packages')->where('id', $package_id)->update($data);
 
         // success
         $response = array();

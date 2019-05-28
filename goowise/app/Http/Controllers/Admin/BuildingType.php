@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
-class Rate extends Controller
+class BuildingType extends Controller
 {
     public function listing(Request $request)
     {
@@ -17,9 +17,9 @@ class Rate extends Controller
         $sort = $request->get('sort');
         $direction = $request->get('direction');
         $filter_name = $request->get('filter_name');
-        $paginate = 20;
-        
-        \Log::info('Admin '.$api_token.' list rate page '.$page);
+        $paginate = 10;
+
+        \Log::info('Admin '.$api_token.' list building_type page '.$page);
 
         // validate api_token
         $response = $this->check_admin($api_token);
@@ -32,7 +32,7 @@ class Rate extends Controller
 
         // update admin
         $last_visit = array();
-        $last_visit['page'] = 'rate_listing';
+        $last_visit['page'] = 'bank_listing';
         $data = array();
         $data['last_visit'] = json_encode($last_visit);
         \DB::table('admins')->where('id', $admin->id)->update($data);
@@ -50,7 +50,7 @@ class Rate extends Controller
         $sorts = array();
         $sorts[] = 'id';
         $sorts[] = 'name';
-        $sorts[] = 'interest';
+        $sorts[] = 'lock_period';
         if(in_array($sort, $sorts) == null)
         {
             $response = array();
@@ -71,14 +71,13 @@ class Rate extends Controller
             return $response;
         }
 
-        // get rates
-        $query = \DB::connection('mysql')->table('rates');
+        // get building_types
+        $query = \DB::connection('mysql')->table('building_types');
         $select = array();
         $select[] = 'id';
         $select[] = 'name';
-        $select[] = 'interest';
         $query->select($select);
-        $total_rates = $query->count();
+        $total_building_types = $query->count();
         if(strlen($filter_name) != 0)
         {
             $query->where('name', 'like', '%'.$filter_name.'%');
@@ -86,15 +85,15 @@ class Rate extends Controller
         $query->where('deleted_at', 0);
         $query->orderBy($sort, $direction);
         $query->paginate($paginate);
-        $rates = $query->get();
+        $building_types = $query->get();
 
         // success
         $response = array();
         $response['error'] = 0;
         $response['message'] = 'Success';
-        $response['rates'] = $rates;
-        $response['total_rates'] = $total_rates;
-        $response['total_pages'] = ceil($total_rates / $paginate);
+        $response['building_types'] = $building_types;
+        $response['total_building_types'] = $total_building_types;
+        $response['total_pages'] = ceil($total_building_types / $paginate);
         $response['current_page'] = $page;
         return $response;
     }
@@ -104,9 +103,8 @@ class Rate extends Controller
         // set variables
         $api_token = $request->get('api_token');
         $name = $request->get('name');
-        $interest = $request->get('interest');
 
-        \Log::info('Admin '.$api_token.' add rate');
+        \Log::info('Admin '.$api_token.' add building_type');
 
         // validate api_token
         $response = $this->check_admin($api_token);
@@ -120,27 +118,18 @@ class Rate extends Controller
         {
             $response = array();
             $response['error'] = 1;
-            $response['message'] = 'Rate name is required';
+            $response['message'] = 'Building type name is required';
             return $response;
         }
 
-        // validate interest
-        if(strlen($interest) == 0)
-        {
-            $response = array();
-            $response['error'] = 1;
-            $response['message'] = 'Interest is required';
-            return $response;
-        }
-
-        // insert rate
+        // insert building_type
+        $building_type_id = $this->unique_id();
         $data = array();
-        $data['id'] = $this->unique_id();
+        $data['id'] = $building_type_id;
         $data['name'] = $name;
-        $data['interest'] = $interest;
         $data['created_at'] = time();
         $data['updated_at'] = time();
-        \DB::table('rates')->insert($data);
+        \DB::table('building_types')->insert($data);
 
         // success
         $response = array();
@@ -153,9 +142,9 @@ class Rate extends Controller
     {
         // set variables
         $api_token = $request->get('api_token');
-        $rate_id = $request->get('rate_id');
+        $building_type_id = $request->get('building_type_id');
 
-        \Log::info('Admin '.$api_token.' edit rate '.$rate_id);
+        \Log::info('Admin '.$api_token.' edit building_type '.$building_type_id);
 
         // validate api_token
         $response = $this->check_admin($api_token);
@@ -164,21 +153,20 @@ class Rate extends Controller
             return $response;
         }
 
-        // get rate
-        $query = \DB::connection('mysql')->table('rates');
+        // get building_type
+        $query = \DB::connection('mysql')->table('building_types');
         $select = array();
         $select[] = 'id';
         $select[] = 'name';
-        $select[] = 'interest';
         $query->select($select);
-        $query->where('id', $rate_id);
-        $rate = $query->first();
+        $query->where('id', $building_type_id);
+        $building_type = $query->first();
 
         // success
         $response = array();
         $response['error'] = 0;
         $response['message'] = 'Success';
-        $response['rate'] = $rate;
+        $response['building_type'] = $building_type;
         return $response;
     }
 
@@ -186,11 +174,10 @@ class Rate extends Controller
     {
         // set variables
         $api_token = $request->get('api_token');
-        $rate_id = $request->get('rate_id');
+        $building_type_id = $request->get('building_type_id');
         $name = $request->get('name');
-        $interest = $request->get('interest');
 
-        \Log::info('Admin '.$api_token.' update rate '.$rate_id);
+        \Log::info('Admin '.$api_token.' update building_type '.$building_type_id);
 
         // validate api_token
         $response = $this->check_admin($api_token);
@@ -204,25 +191,15 @@ class Rate extends Controller
         {
             $response = array();
             $response['error'] = 1;
-            $response['message'] = 'Rate name is required';
+            $response['message'] = 'Building type name is required';
             return $response;
         }
 
-        // validate interest
-        if(strlen($interest) == 0)
-        {
-            $response = array();
-            $response['error'] = 1;
-            $response['message'] = 'Interest is required';
-            return $response;
-        }
-        
-        // update rate
+        // update building_type
         $data = array();
         $data['name'] = $name;
-        $data['interest'] = $interest;
         $data['updated_at'] = time();
-        \DB::table('rates')->where('id', $rate_id)->update($data);
+        \DB::table('building_types')->where('id', $building_type_id)->update($data);
 
         // success
         $response = array();
@@ -235,9 +212,9 @@ class Rate extends Controller
     {
         // set variables
         $api_token = $request->get('api_token');
-        $rate_id = $request->get('rate_id');
+        $building_type_id = $request->get('building_type_id');
 
-        \Log::info('Admin '.$api_token.' destroy rate '.$rate_id);
+        \Log::info('Admin '.$api_token.' destroy building_type '.$building_type_id);
 
         // validate api_token
         $response = $this->check_admin($api_token);
@@ -246,10 +223,10 @@ class Rate extends Controller
             return $response;
         }
 
-        // delete rate
+        // delete building_type
         $data = array();
         $data['deleted_at'] = time();
-        \DB::table('rates')->where('id', $rate_id)->update($data);
+        \DB::table('building_types')->where('id', $building_type_id)->update($data);
 
         // success
         $response = array();

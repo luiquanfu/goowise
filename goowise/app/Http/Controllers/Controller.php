@@ -35,15 +35,15 @@ abstract class Controller extends BaseController
     public function unique_id()
     {
         // $random = str_pad(rand(1, 999999999), 9, 0, STR_PAD_LEFT);
-        $random = strtoupper(str_random(6));
-        return (microtime(true) * 10000).$random;
+        $random = strtoupper(str_random(10));
+        return time().$random;
     }
 
     public function unique_token()
     {
         // $random = str_pad(rand(1, 999999999), 9, 0, STR_PAD_LEFT);
-        $random = strtoupper(str_random(6));
-        return md5((microtime(true) * 10000).$random);
+        $random = strtoupper(str_random(10));
+        return time().$random;
     }
 
     public function check_admin($api_token)
@@ -68,7 +68,7 @@ abstract class Controller extends BaseController
 
         // get admin
         $query = \DB::table('admins');
-        $query->select('id', 'name', 'email');
+        $query->select('id', 'firstname', 'email', 'last_visit');
         $query->where('id', $admin_token->admin_id);
         $query->where('deleted_at', 0);
         $admin = $query->first();
@@ -101,5 +101,55 @@ abstract class Controller extends BaseController
             $fields[$key] = $value;
         }
         return $fields;
+    }
+
+    function wrap_currency($amount, $symbol, $direction, $decimal, $negative)
+    {
+        // convert integer to decimal amount
+        $amount = $amount / pow(10, $decimal);
+        
+        // convert number to string
+        $string = number_format($amount, $decimal);
+
+        // handle negative number
+        if($amount < 0)
+        {
+            if($negative == 'none')
+            {
+                $string = number_format($amount * -1, $decimal);
+            }
+
+            if($negative == 'minus')
+            {
+                $string = number_format($amount * -1, $decimal);
+            }
+
+            if($negative == 'bracket')
+            {
+                $string = '('.number_format($amount * -1, $decimal).')';
+            }
+        }
+        
+        // add currency symbol to string
+        if($direction == 'left')
+        {
+            $string = $symbol.$string;
+        }
+        if($direction == 'right')
+        {
+            $string = $string.$symbol;
+        }
+        
+        // if negative is minus
+        if($amount < 0)
+        {
+            if($negative == 'minus')
+            {
+                $string = '-'.$string;
+            }
+        }
+        
+        // return
+        return $string;
     }
 }

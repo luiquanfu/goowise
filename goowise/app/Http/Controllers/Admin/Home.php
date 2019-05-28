@@ -5,6 +5,10 @@ namespace App\Http\Controllers\Admin;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+use DB;
+
 class Home extends Controller
 {
     public function index()
@@ -46,10 +50,13 @@ class Home extends Controller
             return $response;
         }
 
+        $admin = $response['admin'];
+
         // success
         $response = array();
         $response['error'] = 0;
         $response['message'] = 'Success';
+        $response['admin'] = $admin;
         return $response;
     }
 
@@ -82,7 +89,7 @@ class Home extends Controller
 
         // get admin
         $query = \DB::table('admins');
-        $query->select('id', 'name', 'password');
+        $query->select('id', 'password');
         $query->where('email', $email);
         $query->where('deleted_at', 0);
         $admin = $query->first();
@@ -164,16 +171,229 @@ class Home extends Controller
 
     public function migration()
     {
+        Schema::create('users', function (Blueprint $table)
+        {
+            $table->string('id', 20);
+            $table->string('firstname', 50);
+            $table->string('lastname', 50);
+            $table->string('email', 70);
+            $table->string('mobile', 15);
+            $table->string('reason');
+            $table->string('ip_address', 25);
+            $table->string('user_agent');
+            $table->integer('email_at');
+            $table->integer('created_at');
+            $table->integer('updated_at');
+            $table->integer('deleted_at');
+
+            $table->primary('id');
+            $table->index('firstname');
+            $table->index('lastname');
+            $table->index('email');
+            $table->index('mobile');
+            $table->index('deleted_at');
+        });
+
+        Schema::create('admins', function (Blueprint $table)
+        {
+            $table->string('id', 20);
+            $table->string('firstname', 50);
+            $table->string('lastname', 50);
+            $table->string('email', 70);
+            $table->string('mobile', 15);
+            $table->string('password');
+            $table->string('last_visit');
+            $table->integer('created_at');
+            $table->integer('updated_at');
+            $table->integer('deleted_at');
+
+            $table->primary('id');
+            $table->index('firstname');
+            $table->index('lastname');
+            $table->index('email');
+            $table->index('mobile');
+            $table->index('deleted_at');
+        });
+
+        Schema::create('admin_tokens', function (Blueprint $table)
+        {
+            $table->string('id', 20);
+            $table->string('admin_id', 20);
+            $table->string('device_id');
+            $table->string('device_type', 10);
+            $table->string('ip_address', 25);
+            $table->string('user_agent');
+            $table->string('api_token', 32);
+            $table->integer('created_at');
+            $table->integer('updated_at');
+            $table->integer('deleted_at');
+
+            $table->primary('id');
+            $table->index('admin_id');
+            $table->index('device_id');
+            $table->index('api_token');
+            $table->index('deleted_at');
+        });
+
+        Schema::create('rates', function (Blueprint $table)
+        {
+            $table->string('id', 20);
+            $table->string('name', 30);
+            $table->double('interest');
+            $table->integer('created_at');
+            $table->integer('updated_at');
+            $table->integer('deleted_at');
+            
+            $table->primary('id');
+            $table->index('name');
+            $table->index('deleted_at');
+        });
+
+        Schema::create('packages', function (Blueprint $table)
+        {
+            $table->string('id', 20);
+            $table->string('name', 30);
+            $table->integer('created_at');
+            $table->integer('updated_at');
+            $table->integer('deleted_at');
+            
+            $table->primary('id');
+            $table->index('name');
+            $table->index('deleted_at');
+        });
+
+        Schema::create('building_types', function (Blueprint $table)
+        {
+            $table->string('id', 20);
+            $table->string('name', 30);
+            $table->integer('created_at');
+            $table->integer('updated_at');
+            $table->integer('deleted_at');
+            
+            $table->primary('id');
+            $table->index('name');
+            $table->index('deleted_at');
+        });
+
+        Schema::create('banks', function (Blueprint $table)
+        {
+            $table->string('id', 20);
+            $table->string('name', 30);
+            $table->integer('created_at');
+            $table->integer('updated_at');
+            $table->integer('deleted_at');
+
+            $table->primary('id');
+            $table->index('name');
+            $table->index('deleted_at');
+        });
+
+        Schema::create('bank_loans', function (Blueprint $table)
+        {
+            $table->string('id', 20);
+            $table->string('bank_id', 20);
+            $table->string('package_id', 20);
+            $table->string('name', 30);
+            $table->integer('lock_period');
+            $table->integer('minimum_loan');
+            $table->integer('created_at');
+            $table->integer('updated_at');
+            $table->integer('deleted_at');
+
+            $table->primary('id');
+            $table->index('bank_id');
+            $table->index('package_id');
+            $table->index('name');
+            $table->index('deleted_at');
+        });
+
+        Schema::create('bank_loan_buildings', function (Blueprint $table)
+        {
+            $table->string('id', 20);
+            $table->string('bank_loan_id', 20);
+            $table->string('building_type_id', 20);
+            $table->integer('created_at');
+            $table->integer('updated_at');
+            $table->integer('deleted_at');
+
+            $table->primary('id');
+            $table->index('bank_loan_id');
+            $table->index('building_type_id');
+            $table->index('deleted_at');
+        });
+
+        Schema::create('bank_rates', function (Blueprint $table)
+        {
+            $table->string('id', 20);
+            $table->string('rate_id', 20);
+            $table->string('bank_id', 20);
+            $table->string('bank_loan_id', 20);
+            $table->integer('year');
+            $table->enum('calculate', ['add', 'subtract']);
+            $table->double('interest');
+            $table->integer('created_at');
+            $table->integer('updated_at');
+            $table->integer('deleted_at');
+
+            $table->primary('id');
+            $table->index('rate_id');
+            $table->index('bank_id');
+            $table->index('bank_loan_id');
+            $table->index('deleted_at');
+        });
+
+        $data = array();
+        $data['id'] = $this->unique_id();
+        $data['firstname'] = 'Quanfu';
+        $data['lastname'] = 'Lui';
+        $data['mobile'] = '90174663';
+        $data['email'] = 'quanfu@hotmail.sg';
+        $data['password'] = bcrypt('alienwarem14x');
+        $data['created_at'] = time();
+        $data['updated_at'] = time();
+        $data['deleted_at'] = 0;
+        DB::table('admins')->insert($data);
+
+        $data = array();
+        $data['id'] = $this->unique_id();
+        $data['firstname'] = 'Alson';
+        $data['lastname'] = 'Kong';
+        $data['mobile'] = '97486595';
+        $data['email'] = 'alsonkong@goowise.com';
+        $data['password'] = bcrypt('alsonkong123');
+        $data['created_at'] = time();
+        $data['updated_at'] = time();
+        $data['deleted_at'] = 0;
+        DB::table('admins')->insert($data);
+
+        return 'migration done';
+    }
+
+    public function rollback()
+    {
+        // Schema::drop('packages');
+        Schema::drop('banks');
+        // Schema::drop('building_types');
+        Schema::drop('rates');
+        Schema::drop('bank_loans');
+        // Schema::drop('bank_loan_buildings');
+        Schema::drop('bank_rates');
+        Schema::drop('admins');
+        Schema::drop('admin_tokens');
+        Schema::drop('users');
+
+        return 'rollback done';
+    }
+
+    public function old_codes()
+    {
         $data = array();
         $data['--database'] = 'mysql';
         $data['--path'] = 'database/migrations';
         $data['--force'] = true;
         \Artisan::call('migrate', $data);
         return 'migrate done';
-    }
 
-    public function rollback()
-    {
         $data = array();
         $data['--database'] = 'mysql';
         \Artisan::call('migrate:rollback', $data);

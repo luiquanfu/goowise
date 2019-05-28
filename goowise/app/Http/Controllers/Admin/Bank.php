@@ -17,7 +17,7 @@ class Bank extends Controller
     // $amount = $apr * -$loan * pow((1 + $apr), $term) / (1 - pow((1 + $apr), $term));
     // return round($amount);
 
-    public function list(Request $request)
+    public function listing(Request $request)
     {
         // set variables
         $api_token = $request->get('api_token');
@@ -26,6 +26,7 @@ class Bank extends Controller
         $direction = $request->get('direction');
         $filter_name = $request->get('filter_name');
         $paginate = 10;
+
         \Log::info('Admin '.$api_token.' list bank page '.$page);
 
         // validate api_token
@@ -34,6 +35,15 @@ class Bank extends Controller
         {
             return $response;
         }
+
+        $admin = $response['admin'];
+
+        // update admin
+        $last_visit = array();
+        $last_visit['page'] = 'bank_listing';
+        $data = array();
+        $data['last_visit'] = json_encode($last_visit);
+        \DB::table('admins')->where('id', $admin->id)->update($data);
 
         // validate page
         if($page < 1)
@@ -108,11 +118,11 @@ class Bank extends Controller
         }
 
         // validate name
-        if(strlen($name) <= 2)
+        if(strlen($name) == 0)
         {
             $response = array();
             $response['error'] = 1;
-            $response['message'] = 'Bank name is required at least 3 chars long';
+            $response['message'] = 'Bank name is required';
             return $response;
         }
 
@@ -177,17 +187,18 @@ class Bank extends Controller
         }
 
         // validate name
-        if(strlen($name) <= 2)
+        if(strlen($name) == 0)
         {
             $response = array();
             $response['error'] = 1;
-            $response['message'] = 'Bank name is required at least 3 chars long';
+            $response['message'] = 'Bank name is required';
             return $response;
         }
         
         // update bank
         $data = array();
         $data['name'] = $name;
+        $data['updated_at'] = time();
         \DB::table('banks')->where('id', $bank_id)->update($data);
 
         // success
