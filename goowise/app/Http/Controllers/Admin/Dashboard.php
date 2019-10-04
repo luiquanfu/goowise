@@ -15,7 +15,7 @@ class Dashboard extends Controller
         $api_token = $request->get('api_token');
         $filter_package_id = $request->get('filter_package_id');
         $filter_bank_id = $request->get('filter_bank_id');
-        \Log::info('Admin '.$api_token.' list dashboard');
+        \Log::info('admin '.$api_token.' list dashboard');
 
         // validate api_token
         $response = $this->check_admin($api_token);
@@ -97,12 +97,10 @@ class Dashboard extends Controller
 
                 if(strlen($filter_bank_id) != 0)
                 {
-                    \Log::debug('strlen filter bank id = '.strlen($filter_bank_id));
                     if($bank_loan->bank_id != $filter_bank_id) continue;
                 }
                 if(strlen($filter_package_id) != 0)
                 {
-                    \Log::debug('strlen filter package id = '.strlen($filter_package_id));
                     if($bank_loan->package_id != $filter_package_id) continue;
                 }
 

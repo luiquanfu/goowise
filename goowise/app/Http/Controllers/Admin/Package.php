@@ -19,7 +19,7 @@ class Package extends Controller
         $filter_name = $request->get('filter_name');
         $paginate = 10;
 
-        \Log::info('Admin '.$api_token.' list package page '.$page);
+        \Log::info('admin '.$api_token.' list package page '.$page);
 
         // validate api_token
         $response = $this->check_admin($api_token);
@@ -104,7 +104,7 @@ class Package extends Controller
         $api_token = $request->get('api_token');
         $name = $request->get('name');
 
-        \Log::info('Admin '.$api_token.' add package');
+        \Log::info('admin '.$api_token.' add package');
 
         // validate api_token
         $response = $this->check_admin($api_token);
@@ -144,7 +144,7 @@ class Package extends Controller
         $api_token = $request->get('api_token');
         $package_id = $request->get('package_id');
 
-        \Log::info('Admin '.$api_token.' edit package '.$package_id);
+        \Log::info('admin '.$api_token.' edit package '.$package_id);
 
         // validate api_token
         $response = $this->check_admin($api_token);
@@ -177,7 +177,7 @@ class Package extends Controller
         $package_id = $request->get('package_id');
         $name = $request->get('name');
 
-        \Log::info('Admin '.$api_token.' update package '.$package_id);
+        \Log::info('admin '.$api_token.' update package '.$package_id);
 
         // validate api_token
         $response = $this->check_admin($api_token);
@@ -214,7 +214,7 @@ class Package extends Controller
         $api_token = $request->get('api_token');
         $package_id = $request->get('package_id');
 
-        \Log::info('Admin '.$api_token.' destroy package '.$package_id);
+        \Log::info('admin '.$api_token.' destroy package '.$package_id);
 
         // validate api_token
         $response = $this->check_admin($api_token);

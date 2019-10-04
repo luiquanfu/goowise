@@ -73,6 +73,31 @@ function initialize()
         }
 
         last_visit = JSON.parse(last_visit);
+        if(last_visit.page == 'advisor_listing')
+        {
+            advisor_index();
+            return;
+        }
+        if(last_visit.page == 'bank_listing')
+        {
+            bank_index();
+            return;
+        }
+        if(last_visit.page == 'bank_loan_listing')
+        {
+            bank_loan_index();
+            return;
+        }
+        if(last_visit.page == 'building_type_listing')
+        {
+            building_type_index();
+            return;
+        }
+        if(last_visit.page == 'client_listing')
+        {
+            client_index();
+            return;
+        }
         if(last_visit.page == 'dashboard_listing')
         {
             dashboard_index();
@@ -86,21 +111,6 @@ function initialize()
         if(last_visit.page == 'rate_listing')
         {
             rate_index();
-            return;
-        }
-        if(last_visit.page == 'building_type_listing')
-        {
-            building_type_index();
-            return;
-        }
-        if(last_visit.page == 'bank_listing')
-        {
-            bank_index();
-            return;
-        }
-        if(last_visit.page == 'bank_loan_listing')
-        {
-            bank_loan_index();
             return;
         }
 	}
@@ -147,7 +157,9 @@ function initialize_display()
     html += '<li><a href="#" onclick="rate_index()"><i class="fa fa-object-group"></i> <span>Rate</span></a></li>';
     html += '<li><a href="#" onclick="building_type_index()"><i class="fa fa-building"></i> <span>Building Type</span></a></li>';
     html += '<li><a href="#" onclick="bank_index()"><i class="fa fa-bank"></i> <span>Bank</span></a></li>';
-    html += '<li><a href="#" onclick="bank_loan_index()"><i class="fa fa-th"></i> <span>Bank Loans</span></a></li>';
+    html += '<li><a href="#" onclick="bank_loan_index()"><i class="fa fa-th"></i> <span>Bank Loan</span></a></li>';
+    html += '<li><a href="#" onclick="advisor_index()"><i class="fa fa-user"></i> <span>Advisor</span></a></li>';
+    html += '<li><a href="#" onclick="client_index()"><i class="fa fa-users"></i> <span>Client</span></a></li>';
     html += '<li><a href="#" onclick="testing()"><i class="fa fa-fire"></i> <span>Testing</span></a></li>';
     html += '<li><a href="#" onclick="logout()"><i class="fa fa-power-off"></i> <span>Logout</span></a></li>';
     html += '</ul>';
@@ -174,391 +186,17 @@ function testing()
     $('#content').html('testing');
 }
 
-function login_display()
-{
-    var html = '';
-    html += '<div class="login-box">';
-    html += '<div class="login-logo">';
-    html += '<img src="' + app_url + '/admin_assets/logo.jpg" style="width: 100%;">';
-    html += '</div>';
-    html += '<div class="login-box-body">';
-    html += '<p class="login-box-msg">Admin Login</p>';
-    html += '<div class="form-group has-feedback">';
-    html += '<input id="email" type="email" class="form-control" placeholder="Email" onkeyup="login_onkeyup(event, \'email\')">';
-    html += '<span class="glyphicon glyphicon-envelope form-control-feedback"></span>';
-    html += '</div>';
-    html += '<div class="form-group has-feedback">';
-    html += '<input id="password" type="password" class="form-control" placeholder="Password" onkeyup="login_onkeyup(event, \'password\')">';
-    html += '<span class="glyphicon glyphicon-lock form-control-feedback"></span>';
-    html += '</div>';
-    html += '<div class="row">';
-    html += '<div class="col-xs-8">';
-    html += '</div>';
-    html += '<div class="col-xs-4">';
-    html += '<div class="btn btn-primary btn-block btn-flat" onclick="login_submit()">Sign In</div>';
-    html += '</div>';
-    html += '</div>';
-    html += '<div id="result"></div>';
-    html += '</div>';
-    html += '</div>';
-
-    $('#app').html(html);
-}
-
-function login_onkeyup(event, position)
-{
-    if(event.keyCode == 13)
-    {
-        if(position == 'email')
-        {
-            $('#password').focus();
-            return;
-        }
-
-        login_submit();
-    }
-}
-
-function login_submit()
-{
-    $('#result').html('<div class="text-light-blue">Please wait...</div>');
-    loading_show();
-
-    var data = {};
-    data.email = $('#email').val();
-    data.password = $('#password').val();
-    data.device_id = device_id;
-    data.device_type = 'website';
-    data = JSON.stringify(data);
-
-    var ajax = {};
-	ajax.url = app_url + '/admin/login';
-	ajax.data = data;
-	ajax.type = 'post';
-	ajax.contentType = 'application/json; charset=utf-8';
-	ajax.processData = false;
-	ajax.success = function(response)
-	{
-        loading_hide();
-		var error = response.error;
-        var message = response.message;
-
-		if(error == 1)
-		{
-			$('#result').html('<div class="text-red">' + message + '</div>');
-			return;
-		}
-        
-        var admin = response.admin;
-        api_token = admin.api_token;
-        
-        $('#result').html('<div class="text-green">' + message + '</div>');
-        initialize_display();
-        dashboard_index();
-	}
-    $.ajax(ajax);
-}
-
-function logout()
-{
-    loading_show();
-
-    var data = {};
-    data.api_token = api_token;
-    data = JSON.stringify(data);
-
-    var ajax = {};
-	ajax.url = app_url + '/admin/logout';
-	ajax.data = data;
-	ajax.type = 'post';
-	ajax.contentType = 'application/json; charset=utf-8';
-	ajax.processData = false;
-	ajax.success = function(response)
-	{
-        loading_hide();
-        login_display();
-	}
-    $.ajax(ajax);
-}
-
-function admin_display()
-{
-    var html = '';
-
-    // header
-    html += '<section class="content-header">';
-    html += '<h1>';
-    html += 'Dashboard';
-    html += '<small>summary of all bank rates</small>';
-    html += '</h1>';
-    html += '</section>';
-
-    // content
-    html += '<section class="content">';
-    html += '<div class="row">';
-    html += '<div class="col-xs-12">';
-    html += '<div class="box box-primary">';
-    html += '<div class="box-header">';
-    html += '<h3 class="box-title">Responsive Hover Table</h3>';
-    html += '';
-    html += '<div class="box-tools">';
-    html += '<div class="input-group input-group-sm" style="width: 150px;">';
-    html += '<input type="text" name="table_search" class="form-control pull-right" placeholder="Search">';
-    html += '';
-    html += '<div class="input-group-btn">';
-    html += '<button type="submit" class="btn btn-default"><i class="fa fa-search"></i></button>';
-    html += '</div>';
-    html += '</div>';
-    html += '</div>';
-    html += '</div>';
-    html += '<div class="box-body table-responsive no-padding">';
-    html += '<table class="table table-hover">';
-    html += '<tr>';
-    html += '<th>ID</th>';
-    html += '<th>User</th>';
-    html += '<th>Date</th>';
-    html += '<th>Status</th>';
-    html += '<th>Reason</th>';
-    html += '</tr>';
-    html += '<tr>';
-    html += '<td>183</td>';
-    html += '<td>John Doe</td>';
-    html += '<td>11-7-2014</td>';
-    html += '<td><span class="label label-success">Approved</span></td>';
-    html += '<td>Bacon ipsum dolor sit amet salami venison chicken flank fatback doner.</td>';
-    html += '</tr>';
-    html += '<tr>';
-    html += '<td>219</td>';
-    html += '<td>Alexander Pierce</td>';
-    html += '<td>11-7-2014</td>';
-    html += '<td><span class="label label-warning">Pending</span></td>';
-    html += '<td>Bacon ipsum dolor sit amet salami venison chicken flank fatback doner.</td>';
-    html += '</tr>';
-    html += '<tr>';
-    html += '<td>657</td>';
-    html += '<td>Bob Doe</td>';
-    html += '<td>11-7-2014</td>';
-    html += '<td><span class="label label-primary">Approved</span></td>';
-    html += '<td>Bacon ipsum dolor sit amet salami venison chicken flank fatback doner.</td>';
-    html += '</tr>';
-    html += '<tr>';
-    html += '<td>175</td>';
-    html += '<td>Mike Doe</td>';
-    html += '<td>11-7-2014</td>';
-    html += '<td><span class="label label-danger">Denied</span></td>';
-    html += '<td>Bacon ipsum dolor sit amet salami venison chicken flank fatback doner.</td>';
-    html += '</tr>';
-    html += '</table>';
-    html += '</div>';
-    html += '</div>';
-    html += '</div>';
-    html += '</div>';
-    html += '</section>';
-    $('#content').html(html);
-}
-
-function dashboard_index()
-{
-    app_data = {};
-    app_data.filter_bank_id = '';
-    app_data.filter_package_id = '';
-    dashboard_list();
-}
-
-function dashboard_filter()
-{
-    app_data.filter_bank_id = $('#filter_bank_id').val();
-    app_data.filter_package_id = $('#filter_package_id').val();
-    dashboard_list();
-}
-
-function dashboard_list()
-{
-    loading_show();
-
-    var data = {};
-    data.api_token = api_token;
-    data.filter_bank_id = app_data.filter_bank_id;
-    data.filter_package_id = app_data.filter_package_id;
-    data = JSON.stringify(data);
-
-    var ajax = {};
-	ajax.url = app_url + '/admin/dashboard/listing';
-	ajax.data = data;
-	ajax.type = 'post';
-	ajax.contentType = 'application/json; charset=utf-8';
-	ajax.processData = false;
-	ajax.success = function(response)
-	{
-        loading_hide();
-		var error = response.error;
-        
-        if(error == 99)
-        {
-            login_display();
-            return;
-        }
-
-        var dashboards = response.dashboards;
-        var packages = response.packages;
-        var banks = response.banks;
-        var html = '';
-
-        // header
-        html += '<section class="content-header">';
-        html += '<h1>';
-        html += 'Dashboard';
-        html += '<small>Listing of all Bank Rates</small>';
-        html += '</h1>';
-        html += '</section>';
-
-        // filter start
-        html += '<section class="content">';
-        html += '<div class="row">';
-        html += '<div class="col-md-12">';
-        html += '<div class="box box-primary">';
-        html += '<div class="box-header with-border">';
-        html += '<h3 class="box-title">Filters</h3>';
-        html += '</div>';
-        html += '<div class="box-body">';
-
-        // filter bank_id
-        html += '<div class="form-group">';
-        html += '<label>Bank</label>';
-        html += '<select id="filter_bank_id" class="form-control select2" style="width: 100%;">';
-        html += '<option value="">All Banks</option>';
-        for(i in banks)
-        {
-            var bank = banks[i];
-            var html_selected = '';
-            if(bank.id == app_data.filter_bank_id)
-            {
-                html_selected = 'selected';
-            }
-            html += '<option value="' + bank.id + '" ' + html_selected + '>' + bank.name + '</option>';
-        }
-        html += '</select>';
-        html += '</div>';
-
-        // filter package_id
-        html += '<div class="form-group">';
-        html += '<label>Package</label>';
-        html += '<select id="filter_package_id" class="form-control select2" style="width: 100%;">';
-        html += '<option value="">All Packages</option>';
-        for(i in packages)
-        {
-            var package = packages[i];
-            var html_selected = '';
-            if(package.id == app_data.filter_package_id)
-            {
-                html_selected = 'selected';
-            }
-            html += '<option value="' + package.id + '" ' + html_selected + '>' + package.name + '</option>';
-        }
-        html += '</select>';
-        html += '</div>';
-
-        // filter end
-        html += '</div>';
-        html += '<div class="box-footer">';
-        html += '<div class="btn btn-primary" onclick="dashboard_filter()">Filter</button>';
-        html += '</div>';
-        html += '</div>';
-        html += '</div>';
-        html += '</div>';
-        html += '</section>';
-
-        // list dashboard
-        for(i in dashboards)
-        {
-            var dashboard = dashboards[i];
-            var bank_loans = dashboard.bank_loans;
-
-            if(bank_loans.length == 0)
-            {
-                continue;
-            }
-
-            html += '<section class="content">';
-            html += '<div class="row">';
-            html += '<div class="col-xs-12">';
-            html += '<div class="box box-primary">';
-            html += '<div class="box-header">';
-            html += '<h3 class="box-title">' + dashboard.name + '</h3>';
-            html += '</div>';
-            html += '<div class="box-body table-responsive no-padding">';
-            html += '<table class="table table-hover">';
-            html += '<tr>';
-            html += '<th>Bank</th>';
-            html += '<th>Minimum Loan</th>';
-            html += '<th>Loan</th>';
-            html += '<th>Lock Period</th>';
-            html += '<th>Year</th>';
-            html += '<th>Rate</th>';
-            html += '<th>Interest Rate</th>';
-            html += '</tr>';
-
-            for(i in bank_loans)
-            {
-                var bank_loan = bank_loans[i];
-
-                html += '<tr>';
-                html += '<td>' + bank_loan.bank_name + '</td>';
-                html += '<td>' + bank_loan.minimum_loan + '</td>';
-                html += '<td>' + bank_loan.name + '</td>';
-                html += '<td>' + bank_loan.lock_period + '</td>';
-
-                var bank_rates = bank_loan.bank_rates;
-                for(j in bank_rates)
-                {
-                    var bank_rate = bank_rates[j];
-
-                    if(j != 0)
-                    {
-                        html += '<tr>';
-                        html += '<td colspan="4"></td>';
-                    }
-                    html += '<td>' + bank_rate.year + '</td>';
-                    html += '<td>' + bank_rate.formula + '</td>';
-                    html += '<td>' + bank_rate.interest_rate + '</td>';
-                    html += '</tr>';
-                }
-
-                if(bank_rates.length == 0)
-                {
-                    html += '<td></td>';
-                    html += '<td></td>';
-                    html += '<td></td>';
-                    html += '</tr>';
-                }
-            }
-            html += '</table>';
-            html += '</div>';
-            html += '</div>';
-            html += '</div>';
-            html += '</div>';
-            html += '</section>';
-        }
-        $('#content').html(html);
-        
-        var options = {};
-        options.minimumResultsForSearch = -1;
-        $('.select2').select2(options);
-	}
-    $.ajax(ajax);
-}
-
-function package_index()
+function advisor_index()
 {
     app_data = {};
     app_data.page = 1;
-    app_data.sort = 'name';
+    app_data.sort = 'firstname';
     app_data.direction = 'asc';
     app_data.filter_name = '';
-    package_list();
+    advisor_list();
 }
 
-function package_list()
+function advisor_list()
 {
     loading_show();
 
@@ -571,7 +209,7 @@ function package_list()
     data = JSON.stringify(data);
 
     var ajax = {};
-	ajax.url = app_url + '/admin/package/listing';
+	ajax.url = app_url + '/admin/advisor/listing';
 	ajax.data = data;
 	ajax.type = 'post';
 	ajax.contentType = 'application/json; charset=utf-8';
@@ -587,20 +225,18 @@ function package_list()
             return;
         }
 
-        var packages = response.packages;
-        var total_pages = response.total_pages;
-        var current_page = response.current_page;
+        var advisors = response.advisors;
         var html = '';
 
         // header
         html += '<section class="content-header">';
         html += '<h1>';
-        html += 'Package Management';
-        html += '<small>Listing of all Packages</small>';
+        html += 'Advisor Management';
+        html += '<small>Listing of all advisors</small>';
         html += '</h1>';
         html += '</section>';
 
-        // filter packages
+        // filter advisors
         html += '<section class="content">';
         html += '<div class="row">';
         html += '<div class="col-md-12">';
@@ -610,67 +246,60 @@ function package_list()
         html += '</div>';
         html += '<div class="box-body">';
         html += '<div class="form-group">';
-        html += '<label>Package Name</label>';
+        html += '<label>Advisor Name</label>';
         html += '<input id="filter_name" type="text" class="form-control" value="' + app_data.filter_name + '">';
         html += '</div>';
         html += '</div>';
         html += '<div class="box-footer">';
-        html += '<div class="btn btn-primary" onclick="package_filter()">Filter</button>';
+        html += '<div class="btn btn-primary" onclick="advisor_filter()">Filter</button>';
         html += '</div>';
         html += '</div>';
         html += '</div>';
         html += '</div>';
         html += '</section>';
 
-        // create packages
+        // create advisors
         html += '<div class="row">';
         html += '<div class="col-md-12">';
         html += '<div class="width15"></div>';
-        html += '<div class="btn btn-success" onclick="package_create()">Create Package</div>';
+        html += '<div class="btn btn-success" onclick="advisor_create()">Create Advisor</div>';
         html += '</div>';
         html += '</div>';
 
-        // list packages
+        // list advisors
         html += '<section class="content">';
         html += '<div class="row">';
         html += '<div class="col-xs-12">';
         html += '<div class="box box-primary">';
         html += '<div class="box-header">';
-        html += '<h3 class="box-title">Package List</h3>';
+        html += '<h3 class="box-title">Advisor List</h3>';
         html += '</div>';
         html += '<div class="box-body table-responsive no-padding">';
         html += '<table class="table table-hover">';
         html += '<tr>';
-        html += '<th role="button" onclick="package_sorting(\'name\')">Name</th>';
+        html += '<th role="button" onclick="advisor_sorting(\'firstname\')">Firstname</th>';
+        html += '<th role="button" onclick="advisor_sorting(\'lastname\')">Lastname</th>';
+        html += '<th role="button" onclick="advisor_sorting(\'mobile\')">Mobile</th>';
+        html += '<th role="button" onclick="advisor_sorting(\'email\')">Email</th>';
         html += '<th>Actions</th>';
         html += '</tr>';
-        for(i in packages)
+        for(i in advisors)
         {
-            var package = packages[i];
+            var advisor = advisors[i];
 
             html += '<tr>';
-            html += '<td>' + package.name + '</td>';
+            html += '<td>' + advisor.firstname + '</td>';
+            html += '<td>' + advisor.lastname + '</td>';
+            html += '<td>' + advisor.mobile + '</td>';
+            html += '<td>' + advisor.email + '</td>';
             html += '<td>';
-            html += '<div class="btn btn-primary" onclick="package_edit(\'' + package.id + '\')"><i class="fa fa-edit"></i></div>';
+            html += '<div class="btn btn-primary" onclick="advisor_edit(\'' + advisor.id + '\')"><i class="fa fa-edit"></i></div>';
             html += '<div class="width5"></div>';
-            html += '<div class="btn btn-danger" onclick="package_remove(\'' + package.id + '\')"><i class="fa fa-trash"></i></div>';
+            html += '<div class="btn btn-danger" onclick="advisor_remove(\'' + advisor.id + '\')"><i class="fa fa-trash"></i></div>';
             html += '</td>';
             html += '</tr>';
         }
         html += '</table>';
-        html += '</div>';
-        html += '<div class="box-footer clearfix">';
-        html += '<ul class="pagination pagination-sm no-margin pull-right">';
-        for(var i = 1; i <= total_pages; i++)
-        {
-            var html_page = '<a href="#" onclick="package_paging(' + i + ')">' + i + '</a>';
-            if(i == current_page)
-            {
-                html_page = '<li><span>' + i + '</span></li>';
-            }
-            html += '<li>' + html_page + '</li>';
-        }
-        html += '</ul>';
         html += '</div>';
         html += '</div>';
         html += '</div>';
@@ -681,20 +310,20 @@ function package_list()
     $.ajax(ajax);
 }
 
-function package_filter()
+function advisor_filter()
 {
     app_data.filter_name = $('#filter_name').val();
     app_data.page = 1;
-    package_list();
+    advisor_list();
 }
 
-function package_paging(page)
+function advisor_paging(page)
 {
     app_data.page = page;
-    package_list();
+    advisor_list();
 }
 
-function package_sorting(sort)
+function advisor_sorting(sort)
 {
     if(sort == app_data.sort)
     {
@@ -712,94 +341,19 @@ function package_sorting(sort)
         app_data.sort = sort;
         app_data.direction = 'asc';
     }
-    package_list();
+    advisor_list();
 }
 
-function package_create()
-{
-    var html = '';
-
-    // start
-    html += '<section class="content">';
-    html += '<div class="row">';
-    html += '<div class="col-md-12">';
-    html += '<div class="box box-primary">';
-    html += '<div class="box-header with-border">';
-    html += '<h3 class="box-title">Add Package</h3>';
-    html += '</div>';
-    html += '<div class="box-body">';
-
-    // name
-    html += '<div class="form-group">';
-    html += '<label>Package Name</label>';
-    html += '<input id="name" type="text" class="form-control">';
-    html += '</div>';
-
-    // end
-    html += '</div>';
-    html += '<div class="box-footer">';
-    html += '<div class="btn btn-success" onclick="package_add()">Add Package</button>';
-    html += '</div>';
-    html += '<div id="result"></div>';
-    html += '</div>';
-    html += '</div>';
-    html += '</div>';
-    html += '</section>';
-
-    $('#content').html(html);
-}
-
-function package_add()
-{
-    $('#result').html('<span class="text-light-blue">Please wait...</span>');
-    loading_show();
-
-    var data = {};
-    data.api_token = api_token;
-    data.name = $('#name').val();
-    data = JSON.stringify(data);
-
-    var ajax = {};
-	ajax.url = app_url + '/admin/package/add';
-	ajax.data = data;
-	ajax.type = 'post';
-	ajax.contentType = 'application/json; charset=utf-8';
-	ajax.processData = false;
-	ajax.success = function(response)
-	{
-        loading_hide();
-		var error = response.error;
-        var message = response.message;
-        
-        if(error == 99)
-        {
-            login_display();
-            return;
-        }
-
-        if(error != 0)
-        {
-            $('#result').html('<span class="text-red">' + message + '</span>');
-            return;
-        }
-
-        $('#result').html('<span class="text-green">' + message + '</span>');
-        package_list();
-	}
-    $.ajax(ajax);
-}
-
-function package_edit(package_id)
+function advisor_create()
 {
     loading_show();
 
     var data = {};
     data.api_token = api_token;
-    data.package_id = package_id;
     data = JSON.stringify(data);
 
     var ajax = {};
-	ajax.url = app_url + '/admin/package/edit';
+	ajax.url = app_url + '/admin/advisor/create';
 	ajax.data = data;
 	ajax.type = 'post';
 	ajax.contentType = 'application/json; charset=utf-8';
@@ -821,362 +375,132 @@ function package_edit(package_id)
 			$('#content').html(message);
 			return;
 		}
-		
-        var package = response.package;
+        
+        var banks = response.banks;
+
         var html = '';
 
-        // start
+        // header
+        html += '<section class="content-header">';
+        html += '<h1>';
+        html += 'Create advisor';
+        html += '<small>add a new advisor</small>';
+        html += '</h1>';
+        html += '</section>';
+
+        // create advisor
         html += '<section class="content">';
         html += '<div class="row">';
         html += '<div class="col-md-12">';
         html += '<div class="box box-primary">';
         html += '<div class="box-header with-border">';
-        html += '<h3 class="box-title">Edit Package</h3>';
+        html += '<h3 class="box-title">Create advisor</h3>';
         html += '</div>';
         html += '<div class="box-body">';
 
-        // id
-        html += '<input id="package_id" type="hidden" value="' + package.id + '">';
-
-        // name
+        // bank_id
         html += '<div class="form-group">';
-        html += '<label>Package Name</label>';
-        html += '<input id="name" type="text" class="form-control" value="' + package.name + '">';
+        html += '<label>Bank</label>';
+        html += '<select id="bank_id" class="form-control select2" style="width: 100%;">';
+        html += '<option value="">Select Bank</option>';
+        for(i in banks)
+        {
+            var bank = banks[i];
+            html += '<option value="' + bank.id + '">' + bank.name + '</option>';
+        }
+        html += '</select>';
         html += '</div>';
 
-        // end
+        // bank_account
+        html += '<div class="form-group">';
+        html += '<label>Bank Account No</label>';
+        html += '<input id="bank_account" type="text" class="form-control">';
+        html += '</div>';
+
+        // nric
+        html += '<div class="form-group">';
+        html += '<label>NRIC</label>';
+        html += '<input id="nric" type="text" class="form-control">';
+        html += '</div>';
+
+        // firstname
+        html += '<div class="form-group">';
+        html += '<label>First Name</label>';
+        html += '<input id="firstname" type="text" class="form-control">';
+        html += '</div>';
+
+        // lastname
+        html += '<div class="form-group">';
+        html += '<label>Last Name</label>';
+        html += '<input id="lastname" type="text" class="form-control">';
+        html += '</div>';
+
+        // mobile
+        html += '<div class="form-group">';
+        html += '<label>Mobile</label>';
+        html += '<input id="mobile" type="text" class="form-control">';
+        html += '</div>';
+
+        // email
+        html += '<div class="form-group">';
+        html += '<label>Email</label>';
+        html += '<input id="email" type="email" class="form-control">';
+        html += '</div>';
+
+        // password
+        html += '<div class="form-group">';
+        html += '<label>Password</label>';
+        html += '<input id="password" type="password" class="form-control">';
+        html += '</div>';
+
+        // address
+        html += '<div class="form-group">';
+        html += '<label>Address</label>';
+        html += '<input id="address" type="text" class="form-control">';
+        html += '</div>';
+
+        // postal_code
+        html += '<div class="form-group">';
+        html += '<label>Postal Code</label>';
+        html += '<input id="postal_code" type="text" class="form-control">';
+        html += '</div>';
+
         html += '</div>';
         html += '<div class="box-footer">';
-        html += '<div class="btn btn-primary" onclick="package_update()">Update Package</button>';
+        html += '<div class="btn btn-success" onclick="advisor_add()">Create Advisor</button>';
         html += '</div>';
         html += '<div id="result"></div>';
         html += '</div>';
         html += '</div>';
         html += '</div>';
         html += '</section>';
-
         $('#content').html(html);
+        $('#bank_id').select2();
 	}
     $.ajax(ajax);
 }
 
-function package_update()
+function advisor_add()
 {
+    loading_show();
     $('#result').html('<span class="text-light-blue">Please wait...</span>');
-    loading_show();
-
-    var data = {};
-    data.api_token = api_token;
-    data.package_id = $('#package_id').val();
-    data.name = $('#name').val();
-    data = JSON.stringify(data);
-
-    var ajax = {};
-	ajax.url = app_url + '/admin/package/update';
-	ajax.data = data;
-	ajax.type = 'post';
-	ajax.contentType = 'application/json; charset=utf-8';
-	ajax.processData = false;
-	ajax.success = function(response)
-	{
-        loading_hide();
-		var error = response.error;
-        var message = response.message;
-        
-        if(error == 99)
-        {
-            login_display();
-            return;
-        }
-		
-		if(error == 1)
-		{
-			$('#result').html('<span class="text-red">' + message + '</span>');
-			return;
-		}
-		
-        $('#result').html('<span class="text-green">' + message + '</span>');
-        package_list();
-	}
-    $.ajax(ajax);
-}
-
-function package_remove(package_id)
-{
-    var html = '';
-    html += '<div class="box box-danger">';
-    html += '<div class="box-header with-border">';
-    html += '<h3 class="box-title">Click Confirm to Delete</h3>';
-    html += '</div>';
-    html += '<div class="box-body">';
-    html += '<div class="btn btn-secondary" onclick="popup_hide()">Cancel</div>';
-    html += '<div class="width5"></div>';
-    html += '<div class="btn btn-danger" onclick="package_destroy(\'' + package_id + '\')">Confirm</div>';
-    html += '<div id="result"></div>';
-    html += '</div>';
-    html += '</div>';
-    popup_show(html);
-}
-
-function package_destroy(package_id)
-{
-    loading_show();
-
-    var data = {};
-    data.api_token = api_token;
-    data.package_id = package_id;
-    data = JSON.stringify(data);
-
-    var ajax = {};
-	ajax.url = app_url + '/admin/package/destroy';
-	ajax.data = data;
-	ajax.type = 'post';
-	ajax.contentType = 'application/json; charset=utf-8';
-	ajax.processData = false;
-	ajax.success = function(response)
-	{
-        loading_hide();
-		var error = response.error;
-        var message = response.message;
-        
-        if(error == 99)
-        {
-            window.location.href = login_url;
-            return;
-        }
-		
-		if(error == 1)
-		{
-			$('#result').html('<span class="text-red">' + message + '</span>');
-			return;
-		}
-		
-        $('#result').html('<span class="text-green">' + message + '</span>');
-
-        popup_hide();
-        package_list();
-	}
-    $.ajax(ajax);
-}
-
-function rate_index()
-{
-    app_data = {};
-    app_data.page = 1;
-    app_data.sort = 'name';
-    app_data.direction = 'asc';
-    app_data.filter_name = '';
-    rate_list();
-}
-
-function rate_list()
-{
-    loading_show();
-
-    var data = {};
-    data.api_token = api_token;
-    data.page = app_data.page;
-    data.sort = app_data.sort;
-    data.direction = app_data.direction;
-    data.filter_name = app_data.filter_name;
-    data = JSON.stringify(data);
-
-    var ajax = {};
-	ajax.url = app_url + '/admin/rate/listing';
-	ajax.data = data;
-	ajax.type = 'post';
-	ajax.contentType = 'application/json; charset=utf-8';
-	ajax.processData = false;
-	ajax.success = function(response)
-	{
-        loading_hide();
-		var error = response.error;
-        
-        if(error == 99)
-        {
-            login_display();
-            return;
-        }
-
-        var rates = response.rates;
-        var total_pages = response.total_pages;
-        var current_page = response.current_page;
-        var html = '';
-
-        // header
-        html += '<section class="content-header">';
-        html += '<h1>';
-        html += 'Rate Management';
-        html += '<small>Listing of all Rates</small>';
-        html += '</h1>';
-        html += '</section>';
-
-        // filter rates
-        html += '<section class="content">';
-        html += '<div class="row">';
-        html += '<div class="col-md-12">';
-        html += '<div class="box box-primary">';
-        html += '<div class="box-header with-border">';
-        html += '<h3 class="box-title">Filters</h3>';
-        html += '</div>';
-        html += '<div class="box-body">';
-        html += '<div class="form-group">';
-        html += '<label>Rate Name</label>';
-        html += '<input id="filter_name" type="text" class="form-control" value="' + app_data.filter_name + '">';
-        html += '</div>';
-        html += '</div>';
-        html += '<div class="box-footer">';
-        html += '<div class="btn btn-primary" onclick="rate_filter()">Filter</button>';
-        html += '</div>';
-        html += '</div>';
-        html += '</div>';
-        html += '</div>';
-        html += '</section>';
-
-        // create rates
-        html += '<div class="row">';
-        html += '<div class="col-md-12">';
-        html += '<div class="width15"></div>';
-        html += '<div class="btn btn-success" onclick="rate_create()">Create Rate</div>';
-        html += '</div>';
-        html += '</div>';
-
-        // list rates
-        html += '<section class="content">';
-        html += '<div class="row">';
-        html += '<div class="col-xs-12">';
-        html += '<div class="box box-primary">';
-        html += '<div class="box-header">';
-        html += '<h3 class="box-title">Rate List</h3>';
-        html += '</div>';
-        html += '<div class="box-body table-responsive no-padding">';
-        html += '<table class="table table-hover">';
-        html += '<tr>';
-        html += '<th role="button" onclick="rate_sorting(\'name\')">Name</th>';
-        html += '<th role="button" onclick="rate_sorting(\'interest\')">Interest</th>';
-        html += '<th>Actions</th>';
-        html += '</tr>';
-        for(i in rates)
-        {
-            var rate = rates[i];
-
-            html += '<tr>';
-            html += '<td>' + rate.name + '</td>';
-            html += '<td>' + rate.interest + '</td>';
-            html += '<td>';
-            html += '<div class="btn btn-primary" onclick="rate_edit(\'' + rate.id + '\')"><i class="fa fa-edit"></i></div>';
-            html += '<div class="width5"></div>';
-            html += '<div class="btn btn-danger" onclick="rate_remove(\'' + rate.id + '\')"><i class="fa fa-trash"></i></div>';
-            html += '</td>';
-            html += '</tr>';
-        }
-        html += '</table>';
-        html += '</div>';
-        html += '<div class="box-footer clearfix">';
-        html += '<ul class="pagination pagination-sm no-margin pull-right">';
-        for(var i = 1; i <= total_pages; i++)
-        {
-            html += '<li onclick="rate_paging(' + i + ')"><a href="#">' + i + '</a></li>';
-        }
-        html += '</ul>';
-        html += '</div>';
-        html += '</div>';
-        html += '</div>';
-        html += '</div>';
-        html += '</section>';
-        $('#content').html(html);
-	}
-    $.ajax(ajax);
-}
-
-function rate_filter()
-{
-    app_data.filter_name = $('#filter_name').val();
-    app_data.page = 1;
-    rate_list();
-}
-
-function rate_paging(page)
-{
-    app_data.page = page;
-    rate_list();
-}
-
-function rate_sorting(sort)
-{
-    if(sort == app_data.sort)
-    {
-        if(app_data.direction == 'asc')
-        {
-            app_data.direction = 'desc';
-        }
-        else
-        {
-            app_data.direction = 'asc';
-        }
-    }
-    if(sort != app_data.sort)
-    {
-        app_data.sort = sort;
-        app_data.direction = 'asc';
-    }
-    rate_list();
-}
-
-function rate_create()
-{
-    var html = '';
-
-    // start
-    html += '<section class="content">';
-    html += '<div class="row">';
-    html += '<div class="col-md-12">';
-    html += '<div class="box box-primary">';
-    html += '<div class="box-header with-border">';
-    html += '<h3 class="box-title">Add Rate</h3>';
-    html += '</div>';
-    html += '<div class="box-body">';
-
-    // name
-    html += '<div class="form-group">';
-    html += '<label>Rate Name</label>';
-    html += '<input id="name" type="text" class="form-control">';
-    html += '</div>';
-
-    // interest
-    html += '<div class="form-group">';
-    html += '<label>Interest</label>';
-    html += '<input id="interest" type="text" class="form-control">';
-    html += '</div>';
-
-    // end
-    html += '</div>';
-    html += '<div class="box-footer">';
-    html += '<div class="btn btn-success" onclick="rate_add()">Add Rate</button>';
-    html += '</div>';
-    html += '<div id="result"></div>';
-    html += '</div>';
-    html += '</div>';
-    html += '</div>';
-    html += '</section>';
-
-    $('#content').html(html);
-}
-
-function rate_add()
-{
-    $('#result').html('<span class="text-light-blue">Please wait...</span>');
-    loading_show();
 
     var data = {};
     data.api_token = api_token;
     data.bank_id = $('#bank_id').val();
-    data.name = $('#name').val();
-    data.interest = $('#interest').val();
+    data.nric = $('#nric').val();
+    data.firstname = $('#firstname').val();
+    data.lastname = $('#lastname').val();
+    data.mobile = $('#mobile').val();
+    data.email = $('#email').val();
+    data.password = $('#password').val();
+    data.bank_account = $('#bank_account').val();
+    data.address = $('#address').val();
+    data.postal_code = $('#postal_code').val();
     data = JSON.stringify(data);
 
     var ajax = {};
-	ajax.url = app_url + '/admin/rate/add';
+	ajax.url = app_url + '/admin/advisor/add';
 	ajax.data = data;
 	ajax.type = 'post';
 	ajax.contentType = 'application/json; charset=utf-8';
@@ -1185,7 +509,7 @@ function rate_add()
 	{
         loading_hide();
 		var error = response.error;
-        var message = response.message;
+		var message = response.message;
         
         if(error == 99)
         {
@@ -1199,22 +523,22 @@ function rate_add()
             return;
         }
         $('#result').html('<span class="text-green">' + message + '</span>');
-        rate_list();
+        advisor_list();
 	}
     $.ajax(ajax);
 }
 
-function rate_edit(rate_id)
+function advisor_edit(advisor_id)
 {
     loading_show();
 
     var data = {};
     data.api_token = api_token;
-    data.rate_id = rate_id;
+    data.advisor_id = advisor_id;
     data = JSON.stringify(data);
 
     var ajax = {};
-	ajax.url = app_url + '/admin/rate/edit';
+	ajax.url = app_url + '/admin/advisor/edit';
 	ajax.data = data;
 	ajax.type = 'post';
 	ajax.contentType = 'application/json; charset=utf-8';
@@ -1236,9 +560,9 @@ function rate_edit(rate_id)
 			$('#content').html(message);
 			return;
 		}
-		
+        
         var banks = response.banks;
-        var rate = response.rate;
+        var advisor = response.advisor;
         var html = '';
 
         // start
@@ -1247,441 +571,89 @@ function rate_edit(rate_id)
         html += '<div class="col-md-12">';
         html += '<div class="box box-primary">';
         html += '<div class="box-header with-border">';
-        html += '<h3 class="box-title">Edit Rate</h3>';
+        html += '<h3 class="box-title">Edit advisor</h3>';
         html += '</div>';
         html += '<div class="box-body">';
 
         // id
-        html += '<input id="rate_id" type="hidden" value="' + rate.id + '">';
+        html += '<input id="advisor_id" type="hidden" value="' + advisor.id + '">';
 
-        // name
+        // bank_id
         html += '<div class="form-group">';
-        html += '<label>Rate Name</label>';
-        html += '<input id="name" type="text" class="form-control" value="' + rate.name + '">';
-        html += '</div>';
-
-        // interest
-        html += '<div class="form-group">';
-        html += '<label>Interest</label>';
-        html += '<input id="interest" type="text" class="form-control" value="' + rate.interest + '">';
-        html += '</div>';
-
-        // end
-        html += '</div>';
-        html += '<div class="box-footer">';
-        html += '<div class="btn btn-primary" onclick="rate_update()">Update Rate</button>';
-        html += '</div>';
-        html += '<div id="result"></div>';
-        html += '</div>';
-        html += '</div>';
-        html += '</div>';
-        html += '</section>';
-
-        $('#content').html(html);
-	}
-    $.ajax(ajax);
-}
-
-function rate_update()
-{
-    $('#result').html('<span class="text-light-blue">Please wait...</span>');
-    loading_show();
-
-    var data = {};
-    data.api_token = api_token;
-    data.rate_id = $('#rate_id').val();
-    data.name = $('#name').val();
-    data.interest = $('#interest').val();
-    data = JSON.stringify(data);
-
-    var ajax = {};
-	ajax.url = app_url + '/admin/rate/update';
-	ajax.data = data;
-	ajax.type = 'post';
-	ajax.contentType = 'application/json; charset=utf-8';
-	ajax.processData = false;
-	ajax.success = function(response)
-	{
-        loading_hide();
-		var error = response.error;
-        var message = response.message;
-        
-        if(error == 99)
+        html += '<label>Bank</label>';
+        html += '<select id="bank_id" class="form-control select2" style="width: 100%;">';
+        html += '<option value="">Select Bank</option>';
+        for(i in banks)
         {
-            login_display();
-            return;
-        }
-		
-		if(error == 1)
-		{
-			$('#result').html('<span class="text-red">' + message + '</span>');
-			return;
-		}
-		
-        $('#result').html('<span class="text-green">' + message + '</span>');
-        rate_list();
-	}
-    $.ajax(ajax);
-}
-
-function rate_remove(rate_id)
-{
-    var html = '';
-    html += '<div class="box box-danger">';
-    html += '<div class="box-header with-border">';
-    html += '<h3 class="box-title">Click Confirm to Delete</h3>';
-    html += '</div>';
-    html += '<div class="box-body">';
-    html += '<div class="btn btn-secondary" onclick="popup_hide()">Cancel</div>';
-    html += '<div class="width5"></div>';
-    html += '<div class="btn btn-danger" onclick="rate_destroy(\'' + rate_id + '\')">Confirm</div>';
-    html += '<div id="result"></div>';
-    html += '</div>';
-    html += '</div>';
-    popup_show(html);
-}
-
-function rate_destroy(rate_id)
-{
-    loading_show();
-
-    var data = {};
-    data.api_token = api_token;
-    data.rate_id = rate_id;
-    data = JSON.stringify(data);
-
-    var ajax = {};
-	ajax.url = app_url + '/admin/rate/destroy';
-	ajax.data = data;
-	ajax.type = 'post';
-	ajax.contentType = 'application/json; charset=utf-8';
-	ajax.processData = false;
-	ajax.success = function(response)
-	{
-        loading_hide();
-		var error = response.error;
-        var message = response.message;
-        
-        if(error == 99)
-        {
-            window.location.href = login_url;
-            return;
-        }
-		
-		if(error == 1)
-		{
-			$('#result').html('<span class="text-red">' + message + '</span>');
-			return;
-		}
-		
-        $('#result').html('<span class="text-green">' + message + '</span>');
-
-        popup_hide();
-        rate_list();
-	}
-    $.ajax(ajax);
-}
-
-function building_type_index()
-{
-    app_data = {};
-    app_data.page = 1;
-    app_data.sort = 'name';
-    app_data.direction = 'asc';
-    app_data.filter_name = '';
-    building_type_list();
-}
-
-function building_type_list()
-{
-    loading_show();
-
-    var data = {};
-    data.api_token = api_token;
-    data.page = app_data.page;
-    data.sort = app_data.sort;
-    data.direction = app_data.direction;
-    data.filter_name = app_data.filter_name;
-    data = JSON.stringify(data);
-
-    var ajax = {};
-	ajax.url = app_url + '/admin/building_type/listing';
-	ajax.data = data;
-	ajax.type = 'post';
-	ajax.contentType = 'application/json; charset=utf-8';
-	ajax.processData = false;
-	ajax.success = function(response)
-	{
-        loading_hide();
-		var error = response.error;
-        
-        if(error == 99)
-        {
-            login_display();
-            return;
-        }
-
-        var building_types = response.building_types;
-        var total_pages = response.total_pages;
-        var current_page = response.current_page;
-        var html = '';
-
-        // header
-        html += '<section class="content-header">';
-        html += '<h1>';
-        html += 'Building Type Management';
-        html += '<small>Listing of all Building Types</small>';
-        html += '</h1>';
-        html += '</section>';
-
-        // filter building_types
-        html += '<section class="content">';
-        html += '<div class="row">';
-        html += '<div class="col-md-12">';
-        html += '<div class="box box-primary">';
-        html += '<div class="box-header with-border">';
-        html += '<h3 class="box-title">Filters</h3>';
-        html += '</div>';
-        html += '<div class="box-body">';
-        html += '<div class="form-group">';
-        html += '<label>Building Type Name</label>';
-        html += '<input id="filter_name" type="text" class="form-control" value="' + app_data.filter_name + '">';
-        html += '</div>';
-        html += '</div>';
-        html += '<div class="box-footer">';
-        html += '<div class="btn btn-primary" onclick="building_type_filter()">Filter</button>';
-        html += '</div>';
-        html += '</div>';
-        html += '</div>';
-        html += '</div>';
-        html += '</section>';
-
-        // create building_types
-        html += '<div class="row">';
-        html += '<div class="col-md-12">';
-        html += '<div class="width15"></div>';
-        html += '<div class="btn btn-success" onclick="building_type_create()">Create Building Type</div>';
-        html += '</div>';
-        html += '</div>';
-
-        // list building_types
-        html += '<section class="content">';
-        html += '<div class="row">';
-        html += '<div class="col-xs-12">';
-        html += '<div class="box box-primary">';
-        html += '<div class="box-header">';
-        html += '<h3 class="box-title">Building Type List</h3>';
-        html += '</div>';
-        html += '<div class="box-body table-responsive no-padding">';
-        html += '<table class="table table-hover">';
-        html += '<tr>';
-        html += '<th role="button" onclick="building_type_sorting(\'name\')">Name</th>';
-        html += '<th>Actions</th>';
-        html += '</tr>';
-        for(i in building_types)
-        {
-            var building_type = building_types[i];
-
-            html += '<tr>';
-            html += '<td>' + building_type.name + '</td>';
-            html += '<td>';
-            html += '<div class="btn btn-primary" onclick="building_type_edit(\'' + building_type.id + '\')"><i class="fa fa-edit"></i></div>';
-            html += '<div class="width5"></div>';
-            html += '<div class="btn btn-danger" onclick="building_type_remove(\'' + building_type.id + '\')"><i class="fa fa-trash"></i></div>';
-            html += '</td>';
-            html += '</tr>';
-        }
-        html += '</table>';
-        html += '</div>';
-        html += '<div class="box-footer clearfix">';
-        html += '<ul class="pagination pagination-sm no-margin pull-right">';
-        for(var i = 1; i <= total_pages; i++)
-        {
-            var html_page = '<a href="#" onclick="building_type_paging(' + i + ')">' + i + '</a>';
-            if(i == current_page)
+            var bank = banks[i];
+            var html_select = '';
+            if(bank.id == advisor.bank_id)
             {
-                html_page = '<li><span>' + i + '</span></li>';
+                html_select = 'selected';
             }
-            html += '<li>' + html_page + '</li>';
+            html += '<option value="' + bank.id + '" ' + html_select + '>' + bank.name + '</option>';
         }
-        html += '</ul>';
+        html += '</select>';
         html += '</div>';
-        html += '</div>';
-        html += '</div>';
-        html += '</div>';
-        html += '</section>';
-        $('#content').html(html);
-	}
-    $.ajax(ajax);
-}
 
-function building_type_filter()
-{
-    app_data.filter_name = $('#filter_name').val();
-    app_data.page = 1;
-    building_type_list();
-}
-
-function building_type_paging(page)
-{
-    app_data.page = page;
-    building_type_list();
-}
-
-function building_type_sorting(sort)
-{
-    if(sort == app_data.sort)
-    {
-        if(app_data.direction == 'asc')
-        {
-            app_data.direction = 'desc';
-        }
-        else
-        {
-            app_data.direction = 'asc';
-        }
-    }
-    if(sort != app_data.sort)
-    {
-        app_data.sort = sort;
-        app_data.direction = 'asc';
-    }
-    building_type_list();
-}
-
-function building_type_create()
-{
-    var html = '';
-
-    // start
-    html += '<section class="content">';
-    html += '<div class="row">';
-    html += '<div class="col-md-12">';
-    html += '<div class="box box-primary">';
-    html += '<div class="box-header with-border">';
-    html += '<h3 class="box-title">Add Building Type</h3>';
-    html += '</div>';
-    html += '<div class="box-body">';
-
-    // name
-    html += '<div class="form-group">';
-    html += '<label>Building Type Name</label>';
-    html += '<input id="name" type="text" class="form-control">';
-    html += '</div>';
-
-    // end
-    html += '</div>';
-    html += '<div class="box-footer">';
-    html += '<div class="btn btn-success" onclick="building_type_add()">Add Building Type</button>';
-    html += '</div>';
-    html += '<div id="result"></div>';
-    html += '</div>';
-    html += '</div>';
-    html += '</div>';
-    html += '</section>';
-
-    $('#content').html(html);
-}
-
-function building_type_add()
-{
-    $('#result').html('<span class="text-light-blue">Please wait...</span>');
-    loading_show();
-
-    var data = {};
-    data.api_token = api_token;
-    data.name = $('#name').val();
-    data = JSON.stringify(data);
-
-    var ajax = {};
-	ajax.url = app_url + '/admin/building_type/add';
-	ajax.data = data;
-	ajax.type = 'post';
-	ajax.contentType = 'application/json; charset=utf-8';
-	ajax.processData = false;
-	ajax.success = function(response)
-	{
-        loading_hide();
-		var error = response.error;
-        var message = response.message;
-        
-        if(error == 99)
-        {
-            login_display();
-            return;
-        }
-
-        if(error != 0)
-        {
-            $('#result').html('<span class="text-red">' + message + '</span>');
-            return;
-        }
-
-        $('#result').html('<span class="text-green">' + message + '</span>');
-        building_type_list();
-	}
-    $.ajax(ajax);
-}
-
-function building_type_edit(building_type_id)
-{
-    loading_show();
-
-    var data = {};
-    data.api_token = api_token;
-    data.building_type_id = building_type_id;
-    data = JSON.stringify(data);
-
-    var ajax = {};
-	ajax.url = app_url + '/admin/building_type/edit';
-	ajax.data = data;
-	ajax.type = 'post';
-	ajax.contentType = 'application/json; charset=utf-8';
-	ajax.processData = false;
-	ajax.success = function(response)
-	{
-        loading_hide();
-		var error = response.error;
-        var message = response.message;
-        
-        if(error == 99)
-        {
-            login_display();
-            return;
-        }
-		
-		if(error != 0)
-		{
-			$('#content').html(message);
-			return;
-		}
-		
-        var building_type = response.building_type;
-        var html = '';
-
-        // start
-        html += '<section class="content">';
-        html += '<div class="row">';
-        html += '<div class="col-md-12">';
-        html += '<div class="box box-primary">';
-        html += '<div class="box-header with-border">';
-        html += '<h3 class="box-title">Edit Building Type</h3>';
-        html += '</div>';
-        html += '<div class="box-body">';
-
-        // id
-        html += '<input id="building_type_id" type="hidden" value="' + building_type.id + '">';
-
-        // name
+        // bank_account
         html += '<div class="form-group">';
-        html += '<label>Building Type Name</label>';
-        html += '<input id="name" type="text" class="form-control" value="' + building_type.name + '">';
+        html += '<label>Bank Account No</label>';
+        html += '<input id="bank_account" type="text" class="form-control" value="' + advisor.bank_account + '">';
+        html += '</div>';
+
+        // nric
+        html += '<div class="form-group">';
+        html += '<label>NRIC</label>';
+        html += '<input id="nric" type="text" class="form-control" value="' + advisor.nric + '">';
+        html += '</div>';
+
+        // firstname
+        html += '<div class="form-group">';
+        html += '<label>First Name</label>';
+        html += '<input id="firstname" type="text" class="form-control" value="' + advisor.firstname + '">';
+        html += '</div>';
+
+        // lastname
+        html += '<div class="form-group">';
+        html += '<label>Last Name</label>';
+        html += '<input id="lastname" type="text" class="form-control" value="' + advisor.lastname + '">';
+        html += '</div>';
+
+        // mobile
+        html += '<div class="form-group">';
+        html += '<label>Mobile</label>';
+        html += '<input id="mobile" type="text" class="form-control" value="' + advisor.mobile + '">';
+        html += '</div>';
+
+        // email
+        html += '<div class="form-group">';
+        html += '<label>Email</label>';
+        html += '<input id="email" type="email" class="form-control" value="' + advisor.email + '">';
+        html += '</div>';
+
+        // password
+        html += '<div class="form-group">';
+        html += '<label>Password</label>';
+        html += '<input id="password" type="password" class="form-control">';
+        html += '</div>';
+
+        // address
+        html += '<div class="form-group">';
+        html += '<label>Address</label>';
+        html += '<input id="address" type="text" class="form-control" value="' + advisor.address + '">';
+        html += '</div>';
+
+        // postal_code
+        html += '<div class="form-group">';
+        html += '<label>Postal Code</label>';
+        html += '<input id="postal_code" type="text" class="form-control" value="' + advisor.postal_code + '">';
         html += '</div>';
 
         // end
         html += '</div>';
         html += '<div class="box-footer">';
-        html += '<div class="btn btn-primary" onclick="building_type_update()">Update Building Type</button>';
+        html += '<div class="btn btn-primary" onclick="advisor_update()">Update Advisor</button>';
         html += '</div>';
         html += '<div id="result"></div>';
         html += '</div>';
@@ -1690,23 +662,33 @@ function building_type_edit(building_type_id)
         html += '</section>';
 
         $('#content').html(html);
+        $('#bank_id').select2();
 	}
     $.ajax(ajax);
 }
 
-function building_type_update()
+function advisor_update()
 {
     $('#result').html('<span class="text-light-blue">Please wait...</span>');
     loading_show();
 
     var data = {};
     data.api_token = api_token;
-    data.building_type_id = $('#building_type_id').val();
-    data.name = $('#name').val();
+    data.advisor_id = $('#advisor_id').val();
+    data.bank_id = $('#bank_id').val();
+    data.nric = $('#nric').val();
+    data.firstname = $('#firstname').val();
+    data.lastname = $('#lastname').val();
+    data.mobile = $('#mobile').val();
+    data.email = $('#email').val();
+    data.password = $('#password').val();
+    data.bank_account = $('#bank_account').val();
+    data.address = $('#address').val();
+    data.postal_code = $('#postal_code').val();
     data = JSON.stringify(data);
 
     var ajax = {};
-	ajax.url = app_url + '/admin/building_type/update';
+	ajax.url = app_url + '/admin/advisor/update';
 	ajax.data = data;
 	ajax.type = 'post';
 	ajax.contentType = 'application/json; charset=utf-8';
@@ -1730,12 +712,12 @@ function building_type_update()
 		}
 		
         $('#result').html('<span class="text-green">' + message + '</span>');
-        building_type_list();
+        advisor_list();
 	}
     $.ajax(ajax);
 }
 
-function building_type_remove(building_type_id)
+function advisor_remove(advisor_id)
 {
     var html = '';
     html += '<div class="box box-danger">';
@@ -1745,24 +727,24 @@ function building_type_remove(building_type_id)
     html += '<div class="box-body">';
     html += '<div class="btn btn-secondary" onclick="popup_hide()">Cancel</div>';
     html += '<div class="width5"></div>';
-    html += '<div class="btn btn-danger" onclick="building_type_destroy(\'' + building_type_id + '\')">Confirm</div>';
+    html += '<div class="btn btn-danger" onclick="advisor_destroy(\'' + advisor_id + '\')">Confirm</div>';
     html += '<div id="result"></div>';
     html += '</div>';
     html += '</div>';
     popup_show(html);
 }
 
-function building_type_destroy(building_type_id)
+function advisor_destroy(advisor_id)
 {
     loading_show();
 
     var data = {};
     data.api_token = api_token;
-    data.building_type_id = building_type_id;
+    data.advisor_id = advisor_id;
     data = JSON.stringify(data);
 
     var ajax = {};
-	ajax.url = app_url + '/admin/building_type/destroy';
+	ajax.url = app_url + '/admin/advisor/destroy';
 	ajax.data = data;
 	ajax.type = 'post';
 	ajax.contentType = 'application/json; charset=utf-8';
@@ -1788,7 +770,7 @@ function building_type_destroy(building_type_id)
         $('#result').html('<span class="text-green">' + message + '</span>');
 
         popup_hide();
-        building_type_list();
+        advisor_list();
 	}
     $.ajax(ajax);
 }
@@ -2202,16 +1184,6 @@ function bank_destroy(bank_id)
         bank_list();
 	}
     $.ajax(ajax);
-}
-
-function bank_index()
-{
-    app_data = {};
-    app_data.page = 1;
-    app_data.sort = 'name';
-    app_data.direction = 'asc';
-    app_data.filter_name = '';
-    bank_list();
 }
 
 function bank_loan_index()
@@ -3069,6 +2041,2249 @@ function bank_rate_destroy(bank_rate_id, mode)
 	ajax.success = function(response)
 	{
         loading_hide();
+	}
+    $.ajax(ajax);
+}
+
+
+function building_type_index()
+{
+    app_data = {};
+    app_data.page = 1;
+    app_data.sort = 'name';
+    app_data.direction = 'asc';
+    app_data.filter_name = '';
+    building_type_list();
+
+    $('body').removeClass('sidebar-open');
+}
+
+function building_type_list()
+{
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.page = app_data.page;
+    data.sort = app_data.sort;
+    data.direction = app_data.direction;
+    data.filter_name = app_data.filter_name;
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/building_type/listing';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+
+        var building_types = response.building_types;
+        var total_pages = response.total_pages;
+        var current_page = response.current_page;
+        var html = '';
+
+        // header
+        html += '<section class="content-header">';
+        html += '<h1>';
+        html += 'Building Type Management';
+        html += '<small>Listing of all Building Types</small>';
+        html += '</h1>';
+        html += '</section>';
+
+        // filter building_types
+        html += '<section class="content">';
+        html += '<div class="row">';
+        html += '<div class="col-md-12">';
+        html += '<div class="box box-primary">';
+        html += '<div class="box-header with-border">';
+        html += '<h3 class="box-title">Filters</h3>';
+        html += '</div>';
+        html += '<div class="box-body">';
+        html += '<div class="form-group">';
+        html += '<label>Building Type Name</label>';
+        html += '<input id="filter_name" type="text" class="form-control" value="' + app_data.filter_name + '">';
+        html += '</div>';
+        html += '</div>';
+        html += '<div class="box-footer">';
+        html += '<div class="btn btn-primary" onclick="building_type_filter()">Filter</button>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</section>';
+
+        // create building_types
+        html += '<div class="row">';
+        html += '<div class="col-md-12">';
+        html += '<div class="width15"></div>';
+        html += '<div class="btn btn-success" onclick="building_type_create()">Create Building Type</div>';
+        html += '</div>';
+        html += '</div>';
+
+        // list building_types
+        html += '<section class="content">';
+        html += '<div class="row">';
+        html += '<div class="col-xs-12">';
+        html += '<div class="box box-primary">';
+        html += '<div class="box-header">';
+        html += '<h3 class="box-title">Building Type List</h3>';
+        html += '</div>';
+        html += '<div class="box-body table-responsive no-padding">';
+        html += '<table class="table table-hover">';
+        html += '<tr>';
+        html += '<th role="button" onclick="building_type_sorting(\'name\')">Name</th>';
+        html += '<th>Actions</th>';
+        html += '</tr>';
+        for(i in building_types)
+        {
+            var building_type = building_types[i];
+
+            html += '<tr>';
+            html += '<td>' + building_type.name + '</td>';
+            html += '<td>';
+            html += '<div class="btn btn-primary" onclick="building_type_edit(\'' + building_type.id + '\')"><i class="fa fa-edit"></i></div>';
+            html += '<div class="width5"></div>';
+            html += '<div class="btn btn-danger" onclick="building_type_remove(\'' + building_type.id + '\')"><i class="fa fa-trash"></i></div>';
+            html += '</td>';
+            html += '</tr>';
+        }
+        html += '</table>';
+        html += '</div>';
+        html += '<div class="box-footer clearfix">';
+        html += '<ul class="pagination pagination-sm no-margin pull-right">';
+        for(var i = 1; i <= total_pages; i++)
+        {
+            var html_page = '<a href="#" onclick="building_type_paging(' + i + ')">' + i + '</a>';
+            if(i == current_page)
+            {
+                html_page = '<li><span>' + i + '</span></li>';
+            }
+            html += '<li>' + html_page + '</li>';
+        }
+        html += '</ul>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</section>';
+        $('#content').html(html);
+	}
+    $.ajax(ajax);
+}
+
+function building_type_filter()
+{
+    app_data.filter_name = $('#filter_name').val();
+    app_data.page = 1;
+    building_type_list();
+}
+
+function building_type_paging(page)
+{
+    app_data.page = page;
+    building_type_list();
+}
+
+function building_type_sorting(sort)
+{
+    if(sort == app_data.sort)
+    {
+        if(app_data.direction == 'asc')
+        {
+            app_data.direction = 'desc';
+        }
+        else
+        {
+            app_data.direction = 'asc';
+        }
+    }
+    if(sort != app_data.sort)
+    {
+        app_data.sort = sort;
+        app_data.direction = 'asc';
+    }
+    building_type_list();
+}
+
+function building_type_create()
+{
+    var html = '';
+
+    // start
+    html += '<section class="content">';
+    html += '<div class="row">';
+    html += '<div class="col-md-12">';
+    html += '<div class="box box-primary">';
+    html += '<div class="box-header with-border">';
+    html += '<h3 class="box-title">Add Building Type</h3>';
+    html += '</div>';
+    html += '<div class="box-body">';
+
+    // name
+    html += '<div class="form-group">';
+    html += '<label>Building Type Name</label>';
+    html += '<input id="name" type="text" class="form-control">';
+    html += '</div>';
+
+    // end
+    html += '</div>';
+    html += '<div class="box-footer">';
+    html += '<div class="btn btn-success" onclick="building_type_add()">Add Building Type</button>';
+    html += '</div>';
+    html += '<div id="result"></div>';
+    html += '</div>';
+    html += '</div>';
+    html += '</div>';
+    html += '</section>';
+
+    $('#content').html(html);
+}
+
+function building_type_add()
+{
+    $('#result').html('<span class="text-light-blue">Please wait...</span>');
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.name = $('#name').val();
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/building_type/add';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        var message = response.message;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+
+        if(error != 0)
+        {
+            $('#result').html('<span class="text-red">' + message + '</span>');
+            return;
+        }
+
+        $('#result').html('<span class="text-green">' + message + '</span>');
+        building_type_list();
+	}
+    $.ajax(ajax);
+}
+
+function building_type_edit(building_type_id)
+{
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.building_type_id = building_type_id;
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/building_type/edit';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        var message = response.message;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+		
+		if(error != 0)
+		{
+			$('#content').html(message);
+			return;
+		}
+		
+        var building_type = response.building_type;
+        var html = '';
+
+        // start
+        html += '<section class="content">';
+        html += '<div class="row">';
+        html += '<div class="col-md-12">';
+        html += '<div class="box box-primary">';
+        html += '<div class="box-header with-border">';
+        html += '<h3 class="box-title">Edit Building Type</h3>';
+        html += '</div>';
+        html += '<div class="box-body">';
+
+        // id
+        html += '<input id="building_type_id" type="hidden" value="' + building_type.id + '">';
+
+        // name
+        html += '<div class="form-group">';
+        html += '<label>Building Type Name</label>';
+        html += '<input id="name" type="text" class="form-control" value="' + building_type.name + '">';
+        html += '</div>';
+
+        // end
+        html += '</div>';
+        html += '<div class="box-footer">';
+        html += '<div class="btn btn-primary" onclick="building_type_update()">Update Building Type</button>';
+        html += '</div>';
+        html += '<div id="result"></div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</section>';
+
+        $('#content').html(html);
+	}
+    $.ajax(ajax);
+}
+
+function building_type_update()
+{
+    $('#result').html('<span class="text-light-blue">Please wait...</span>');
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.building_type_id = $('#building_type_id').val();
+    data.name = $('#name').val();
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/building_type/update';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        var message = response.message;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+		
+		if(error == 1)
+		{
+			$('#result').html('<span class="text-red">' + message + '</span>');
+			return;
+		}
+		
+        $('#result').html('<span class="text-green">' + message + '</span>');
+        building_type_list();
+	}
+    $.ajax(ajax);
+}
+
+function building_type_remove(building_type_id)
+{
+    var html = '';
+    html += '<div class="box box-danger">';
+    html += '<div class="box-header with-border">';
+    html += '<h3 class="box-title">Click Confirm to Delete</h3>';
+    html += '</div>';
+    html += '<div class="box-body">';
+    html += '<div class="btn btn-secondary" onclick="popup_hide()">Cancel</div>';
+    html += '<div class="width5"></div>';
+    html += '<div class="btn btn-danger" onclick="building_type_destroy(\'' + building_type_id + '\')">Confirm</div>';
+    html += '<div id="result"></div>';
+    html += '</div>';
+    html += '</div>';
+    popup_show(html);
+}
+
+function building_type_destroy(building_type_id)
+{
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.building_type_id = building_type_id;
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/building_type/destroy';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        var message = response.message;
+        
+        if(error == 99)
+        {
+            window.location.href = login_url;
+            return;
+        }
+		
+		if(error == 1)
+		{
+			$('#result').html('<span class="text-red">' + message + '</span>');
+			return;
+		}
+		
+        $('#result').html('<span class="text-green">' + message + '</span>');
+
+        popup_hide();
+        building_type_list();
+	}
+    $.ajax(ajax);
+}
+
+function client_index()
+{
+    app_data = {};
+    app_data.page = 1;
+    app_data.sort = 'owner_name';
+    app_data.direction = 'asc';
+    app_data.filter_name = '';
+    app_data.filter_nric = '';
+    app_data.filter_mobile = '';
+    app_data.filter_email = '';
+    client_list();
+}
+
+function client_list()
+{
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.page = app_data.page;
+    data.sort = app_data.sort;
+    data.direction = app_data.direction;
+    data.filter_name = app_data.filter_name;
+    data.filter_nric = app_data.filter_nric;
+    data.filter_mobile = app_data.filter_mobile;
+    data.filter_email = app_data.filter_email;
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/client/listing';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+
+        var clients = response.clients;
+        var html = '';
+
+        // filter start
+        html += '<section class="content-header">';
+        html += '<h1>';
+        html += 'Client Management';
+        html += '<small>Listing of all clients</small>';
+        html += '</h1>';
+        html += '</section>';
+
+        // filter clients
+        html += '<section class="content">';
+        html += '<div class="row">';
+        html += '<div class="col-md-12">';
+        html += '<div class="box box-primary">';
+        html += '<div class="box-header with-border">';
+        html += '<h3 class="box-title">Filters</h3>';
+        html += '</div>';
+        html += '<div class="box-body">';
+
+        // filter_name
+        html += '<div class="col-md-6">';
+        html += '<div class="form-group">';
+        html += '<label>Client Name</label>';
+        html += '<input id="filter_name" type="text" class="form-control" value="' + app_data.filter_name + '">';
+        html += '</div>';
+        html += '</div>';
+
+        // filter_nric
+        html += '<div class="col-md-6">';
+        html += '<div class="form-group">';
+        html += '<label>Client NRIC</label>';
+        html += '<input id="filter_nric" type="text" class="form-control" value="' + app_data.filter_nric + '">';
+        html += '</div>';
+        html += '</div>';
+
+        // filter_mobile
+        html += '<div class="col-md-6">';
+        html += '<div class="form-group">';
+        html += '<label>Client Mobile</label>';
+        html += '<input id="filter_mobile" type="text" class="form-control" value="' + app_data.filter_mobile + '">';
+        html += '</div>';
+        html += '</div>';
+
+        // filter_email
+        html += '<div class="col-md-6">';
+        html += '<div class="form-group">';
+        html += '<label>Client Email</label>';
+        html += '<input id="filter_email" type="text" class="form-control" value="' + app_data.filter_email + '">';
+        html += '</div>';
+        html += '</div>';
+
+        // filter end
+        html += '</div>';
+        html += '<div class="box-footer">';
+        html += '<div class="btn btn-primary" onclick="client_filter()">Filter</button>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</section>';
+
+        // create clients
+        html += '<div class="row">';
+        html += '<div class="col-md-12">';
+        html += '<div class="width15"></div>';
+        html += '<div class="btn btn-success" onclick="client_create()">Create Client</div>';
+        html += '</div>';
+        html += '</div>';
+
+        // list clients
+        html += '<section class="content">';
+        html += '<div class="row">';
+        html += '<div class="col-xs-12">';
+        html += '<div class="box box-primary">';
+        html += '<div class="box-header">';
+        html += '<h3 class="box-title">client List</h3>';
+        html += '</div>';
+        html += '<div class="box-body table-responsive no-padding">';
+        html += '<table class="table table-hover">';
+        html += '<tr>';
+        html += '<th role="button" onclick="client_sorting(\'owner_name\')">Name</th>';
+        html += '<th role="button" onclick="client_sorting(\'owner_nric\')">NRIC</th>';
+        html += '<th role="button" onclick="client_sorting(\'owner_mobile\')">Mobile</th>';
+        html += '<th role="button" onclick="client_sorting(\'owner_email\')">Email</th>';
+        html += '<th>Advisor</th>';
+        html += '<th role="button" onclick="client_sorting(\'loan_amount\')">Loan Amount</th>';
+        html += '<th>Actions</th>';
+        html += '</tr>';
+        for(i in clients)
+        {
+            var client = clients[i];
+
+            html += '<tr>';
+            html += '<td>' + client.owner_name + '<br>' + client.joint_name + '</td>';
+            html += '<td>' + client.owner_nric + '<br>' + client.joint_nric + '</td>';
+            html += '<td>' + client.owner_mobile + '<br>' + client.joint_mobile + '</td>';
+            html += '<td>' + client.owner_email + '<br>' + client.joint_email + '</td>';
+            html += '<td>' + client.advisor_name + '</td>';
+            html += '<td>' + client.bank_name + '<br>' + client.loan_amount + '</td>';
+            html += '<td>';
+            html += '<div class="btn btn-primary" onclick="client_edit(\'' + client.id + '\')"><i class="fa fa-edit"></i></div>';
+            html += '<div class="width5"></div>';
+            html += '<div class="btn btn-danger" onclick="client_remove(\'' + client.id + '\')"><i class="fa fa-trash"></i></div>';
+            html += '</td>';
+            html += '</tr>';
+        }
+        html += '</table>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</section>';
+        $('#content').html(html);
+	}
+    $.ajax(ajax);
+}
+
+function client_filter()
+{
+    app_data.filter_name = $('#filter_name').val();
+    app_data.filter_nric = $('#filter_nric').val();
+    app_data.filter_email = $('#filter_email').val();
+    app_data.filter_mobile = $('#filter_mobile').val();
+    app_data.page = 1;
+    client_list();
+}
+
+function client_paging(page)
+{
+    app_data.page = page;
+    client_list();
+}
+
+function client_sorting(sort)
+{
+    if(sort == app_data.sort)
+    {
+        if(app_data.direction == 'asc')
+        {
+            app_data.direction = 'desc';
+        }
+        else
+        {
+            app_data.direction = 'asc';
+        }
+    }
+    if(sort != app_data.sort)
+    {
+        app_data.sort = sort;
+        app_data.direction = 'asc';
+    }
+    client_list();
+}
+
+function client_create()
+{
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/client/create';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        var message = response.message;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+		
+		if(error != 0)
+		{
+			$('#content').html(message);
+			return;
+		}
+        
+        var banks = response.banks;
+        var advisors = response.advisors;
+
+        var html = '';
+
+        // header
+        html += '<section class="content-header">';
+        html += '<h1>';
+        html += 'Create Client';
+        html += '<small>add a new client</small>';
+        html += '</h1>';
+        html += '</section>';
+
+        // create client
+        html += '<section class="content">';
+        html += '<div class="row">';
+        html += '<div class="col-md-12">';
+        html += '<div class="box box-primary">';
+        html += '<div class="box-header with-border">';
+        html += '<h3 class="box-title">Create client</h3>';
+        html += '</div>';
+        html += '<div class="box-body">';
+
+        // advisor_id
+        html += '<div class="form-group">';
+        html += '<label>Advisor</label>';
+        html += '<select id="advisor_id" class="form-control select2" style="width: 100%;">';
+        html += '<option value="">Select Advisor</option>';
+        for(i in advisors)
+        {
+            var advisor = advisors[i];
+            html += '<option value="' + advisor.id + '">' + advisor.firstname + ' ' + advisor.lastname + '</option>';
+        }
+        html += '</select>';
+        html += '</div>';
+
+        // bank_id
+        html += '<div class="form-group">';
+        html += '<label>Loan Bank</label>';
+        html += '<select id="bank_id" class="form-control select2" style="width: 100%;">';
+        html += '<option value="">Select bank</option>';
+        for(i in banks)
+        {
+            var bank = banks[i];
+            html += '<option value="' + bank.id + '">' + bank.name + '</option>';
+        }
+        html += '</select>';
+        html += '</div>';
+
+        // loan_amount
+        html += '<div class="form-group">';
+        html += '<label>Loan Amount</label>';
+        html += '<input id="loan_amount" type="text" class="form-control">';
+        html += '</div>';
+
+        // owner_name
+        html += '<div class="form-group">';
+        html += '<label>Owner Name</label>';
+        html += '<input id="owner_name" type="text" class="form-control">';
+        html += '</div>';
+
+        // owner_nric
+        html += '<div class="form-group">';
+        html += '<label>Owner NRIC</label>';
+        html += '<input id="owner_nric" type="email" class="form-control">';
+        html += '</div>';
+
+        // owner_mobile
+        html += '<div class="form-group">';
+        html += '<label>Owner Mobile</label>';
+        html += '<input id="owner_mobile" type="text" class="form-control">';
+        html += '</div>';
+
+        // owner_email
+        html += '<div class="form-group">';
+        html += '<label>Owner Email</label>';
+        html += '<input id="owner_email" type="email" class="form-control">';
+        html += '</div>';
+
+        // joint_name
+        html += '<div class="form-group">';
+        html += '<label>Joint Name</label>';
+        html += '<input id="joint_name" type="text" class="form-control">';
+        html += '</div>';
+
+        // joint_nric
+        html += '<div class="form-group">';
+        html += '<label>Joint NRIC</label>';
+        html += '<input id="joint_nric" type="email" class="form-control">';
+        html += '</div>';
+
+        // joint_mobile
+        html += '<div class="form-group">';
+        html += '<label>Joint Mobile</label>';
+        html += '<input id="joint_mobile" type="text" class="form-control">';
+        html += '</div>';
+
+        // joint_email
+        html += '<div class="form-group">';
+        html += '<label>Joint Email</label>';
+        html += '<input id="joint_email" type="email" class="form-control">';
+        html += '</div>';
+
+        // property_address
+        html += '<div class="form-group">';
+        html += '<label>Property Address</label>';
+        html += '<input id="property_address" type="text" class="form-control">';
+        html += '</div>';
+
+        // postal_code
+        html += '<div class="form-group">';
+        html += '<label>Postal Code</label>';
+        html += '<input id="postal_code" type="text" class="form-control">';
+        html += '</div>';
+
+        html += '</div>';
+        html += '<div class="box-footer">';
+        html += '<div class="btn btn-success" onclick="client_add()">Create Client</button>';
+        html += '</div>';
+        html += '<div id="result"></div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</section>';
+        $('#content').html(html);
+        $('#advisor_id').select2();
+        $('#bank_id').select2();
+	}
+    $.ajax(ajax);
+}
+
+function client_add()
+{
+    loading_show();
+    $('#result').html('<span class="text-light-blue">Please wait...</span>');
+
+    var data = {};
+    data.api_token = api_token;
+    data.advisor_id = $('#advisor_id').val();
+    data.bank_id = $('#bank_id').val();
+    data.owner_name = $('#owner_name').val();
+    data.owner_nric = $('#owner_nric').val();
+    data.owner_mobile = $('#owner_mobile').val();
+    data.owner_email = $('#owner_email').val();
+    data.joint_name = $('#joint_name').val();
+    data.joint_nric = $('#joint_nric').val();
+    data.joint_mobile = $('#joint_mobile').val();
+    data.joint_email = $('#joint_email').val();
+    data.property_address = $('#property_address').val();
+    data.postal_code = $('#postal_code').val();
+    data.loan_amount = $('#loan_amount').val();
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/client/add';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+		var message = response.message;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+
+        if(error != 0)
+        {
+            $('#result').html('<span class="text-red">' + message + '</span>');
+            return;
+        }
+        $('#result').html('<span class="text-green">' + message + '</span>');
+        client_list();
+	}
+    $.ajax(ajax);
+}
+
+function client_edit(client_id)
+{
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.client_id = client_id;
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/client/edit';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        var message = response.message;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+		
+		if(error != 0)
+		{
+			$('#content').html(message);
+			return;
+		}
+        
+        var advisors = response.advisors;
+        var client = response.client;
+        var banks = response.banks;
+        var html = '';
+
+        // start
+        html += '<section class="content">';
+        html += '<div class="row">';
+        html += '<div class="col-md-12">';
+        html += '<div class="box box-primary">';
+        html += '<div class="box-header with-border">';
+        html += '<h3 class="box-title">Edit client</h3>';
+        html += '</div>';
+        html += '<div class="box-body">';
+
+        // id
+        html += '<input id="client_id" type="hidden" value="' + client.id + '">';
+
+        // advisor_id
+        html += '<div class="form-group">';
+        html += '<label>Advisor</label>';
+        html += '<select id="advisor_id" class="form-control select2" style="width: 100%;">';
+        html += '<option value="">Select advisor</option>';
+        for(i in advisors)
+        {
+            var advisor = advisors[i];
+            var html_select = '';
+            if(advisor.id == client.advisor_id)
+            {
+                html_select = 'selected';
+            }
+            html += '<option value="' + advisor.id + '" ' + html_select + '>' + advisor.firstname + ' ' + advisor.lastname + '</option>';
+        }
+        html += '</select>';
+        html += '</div>';
+
+        // bank_id
+        html += '<div class="form-group">';
+        html += '<label>Loan Bank</label>';
+        html += '<select id="bank_id" class="form-control select2" style="width: 100%;">';
+        html += '<option value="">Select bank</option>';
+        for(i in banks)
+        {
+            var bank = banks[i];
+            var html_select = '';
+            if(bank.id == client.bank_id)
+            {
+                html_select = 'selected';
+            }
+            html += '<option value="' + bank.id + '" ' + html_select + '>' + bank.name + '</option>';
+        }
+        html += '</select>';
+        html += '</div>';
+
+        // loan_amount
+        html += '<div class="form-group">';
+        html += '<label>Loan Amount</label>';
+        html += '<input id="loan_amount" type="text" class="form-control" value="' + client.loan_amount + '">';
+        html += '</div>';
+
+        // owner_name
+        html += '<div class="form-group">';
+        html += '<label>Owner Name</label>';
+        html += '<input id="owner_name" type="text" class="form-control" value="' + client.owner_name + '">';
+        html += '</div>';
+
+        // owner_nric
+        html += '<div class="form-group">';
+        html += '<label>Owner NRIC</label>';
+        html += '<input id="owner_nric" type="email" class="form-control" value="' + client.owner_nric + '">';
+        html += '</div>';
+
+        // owner_mobile
+        html += '<div class="form-group">';
+        html += '<label>Owner Mobile</label>';
+        html += '<input id="owner_mobile" type="text" class="form-control" value="' + client.owner_mobile + '">';
+        html += '</div>';
+
+        // owner_email
+        html += '<div class="form-group">';
+        html += '<label>Owner Email</label>';
+        html += '<input id="owner_email" type="email" class="form-control" value="' + client.owner_email + '">';
+        html += '</div>';
+
+        // joint_name
+        html += '<div class="form-group">';
+        html += '<label>Joint Name</label>';
+        html += '<input id="joint_name" type="text" class="form-control" value="' + client.joint_name + '">';
+        html += '</div>';
+
+        // joint_nric
+        html += '<div class="form-group">';
+        html += '<label>Joint NRIC</label>';
+        html += '<input id="joint_nric" type="email" class="form-control" value="' + client.joint_nric + '">';
+        html += '</div>';
+
+        // joint_mobile
+        html += '<div class="form-group">';
+        html += '<label>Joint Mobile</label>';
+        html += '<input id="joint_mobile" type="text" class="form-control" value="' + client.joint_mobile + '">';
+        html += '</div>';
+
+        // joint_email
+        html += '<div class="form-group">';
+        html += '<label>Joint Email</label>';
+        html += '<input id="joint_email" type="email" class="form-control" value="' + client.joint_email + '">';
+        html += '</div>';
+
+        // property_address
+        html += '<div class="form-group">';
+        html += '<label>Property Address</label>';
+        html += '<input id="property_address" type="text" class="form-control" value="' + client.property_address + '">';
+        html += '</div>';
+
+        // postal_code
+        html += '<div class="form-group">';
+        html += '<label>Postal Code</label>';
+        html += '<input id="postal_code" type="text" class="form-control" value="' + client.postal_code + '">';
+        html += '</div>';
+
+        // end
+        html += '</div>';
+        html += '<div class="box-footer">';
+        html += '<div class="btn btn-primary" onclick="client_update()">Update client</button>';
+        html += '</div>';
+        html += '<div id="result"></div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</section>';
+
+        $('#content').html(html);
+        $('#advisor_id').select2();
+        $('#bank_id').select2();
+	}
+    $.ajax(ajax);
+}
+
+function client_update()
+{
+    $('#result').html('<span class="text-light-blue">Please wait...</span>');
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.client_id = $('#client_id').val();
+    data.advisor_id = $('#advisor_id').val();
+    data.bank_id = $('#bank_id').val();
+    data.owner_name = $('#owner_name').val();
+    data.owner_nric = $('#owner_nric').val();
+    data.owner_mobile = $('#owner_mobile').val();
+    data.owner_email = $('#owner_email').val();
+    data.joint_name = $('#joint_name').val();
+    data.joint_nric = $('#joint_nric').val();
+    data.joint_mobile = $('#joint_mobile').val();
+    data.joint_email = $('#joint_email').val();
+    data.property_address = $('#property_address').val();
+    data.postal_code = $('#postal_code').val();
+    data.loan_amount = $('#loan_amount').val();
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/client/update';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        var message = response.message;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+		
+		if(error == 1)
+		{
+			$('#result').html('<span class="text-red">' + message + '</span>');
+			return;
+		}
+		
+        $('#result').html('<span class="text-green">' + message + '</span>');
+        client_list();
+	}
+    $.ajax(ajax);
+}
+
+function client_remove(client_id)
+{
+    var html = '';
+    html += '<div class="box box-danger">';
+    html += '<div class="box-header with-border">';
+    html += '<h3 class="box-title">Click Confirm to Delete</h3>';
+    html += '</div>';
+    html += '<div class="box-body">';
+    html += '<div class="btn btn-secondary" onclick="popup_hide()">Cancel</div>';
+    html += '<div class="width5"></div>';
+    html += '<div class="btn btn-danger" onclick="client_destroy(\'' + client_id + '\')">Confirm</div>';
+    html += '<div id="result"></div>';
+    html += '</div>';
+    html += '</div>';
+    popup_show(html);
+}
+
+function client_destroy(client_id)
+{
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.client_id = client_id;
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/client/destroy';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        var message = response.message;
+        
+        if(error == 99)
+        {
+            window.location.href = login_url;
+            return;
+        }
+		
+		if(error == 1)
+		{
+			$('#result').html('<span class="text-red">' + message + '</span>');
+			return;
+		}
+		
+        $('#result').html('<span class="text-green">' + message + '</span>');
+
+        popup_hide();
+        client_list();
+	}
+    $.ajax(ajax);
+}
+
+function dashboard_index()
+{
+    app_data = {};
+    app_data.filter_bank_id = '';
+    app_data.filter_package_id = '';
+    dashboard_list();
+}
+
+function dashboard_filter()
+{
+    app_data.filter_bank_id = $('#filter_bank_id').val();
+    app_data.filter_package_id = $('#filter_package_id').val();
+    dashboard_list();
+}
+
+function dashboard_list()
+{
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.filter_bank_id = app_data.filter_bank_id;
+    data.filter_package_id = app_data.filter_package_id;
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/dashboard/listing';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+
+        var dashboards = response.dashboards;
+        var packages = response.packages;
+        var banks = response.banks;
+        var html = '';
+
+        // header
+        html += '<section class="content-header">';
+        html += '<h1>';
+        html += 'Dashboard';
+        html += '<small>Listing of all Bank Rates</small>';
+        html += '</h1>';
+        html += '</section>';
+
+        // filter start
+        html += '<section class="content">';
+        html += '<div class="row">';
+        html += '<div class="col-md-12">';
+        html += '<div class="box box-primary">';
+        html += '<div class="box-header with-border">';
+        html += '<h3 class="box-title">Filters</h3>';
+        html += '</div>';
+        html += '<div class="box-body">';
+
+        // filter bank_id
+        html += '<div class="form-group">';
+        html += '<label>Bank</label>';
+        html += '<select id="filter_bank_id" class="form-control select2" style="width: 100%;">';
+        html += '<option value="">All Banks</option>';
+        for(i in banks)
+        {
+            var bank = banks[i];
+            var html_selected = '';
+            if(bank.id == app_data.filter_bank_id)
+            {
+                html_selected = 'selected';
+            }
+            html += '<option value="' + bank.id + '" ' + html_selected + '>' + bank.name + '</option>';
+        }
+        html += '</select>';
+        html += '</div>';
+
+        // filter package_id
+        html += '<div class="form-group">';
+        html += '<label>Package</label>';
+        html += '<select id="filter_package_id" class="form-control select2" style="width: 100%;">';
+        html += '<option value="">All Packages</option>';
+        for(i in packages)
+        {
+            var package = packages[i];
+            var html_selected = '';
+            if(package.id == app_data.filter_package_id)
+            {
+                html_selected = 'selected';
+            }
+            html += '<option value="' + package.id + '" ' + html_selected + '>' + package.name + '</option>';
+        }
+        html += '</select>';
+        html += '</div>';
+
+        // filter end
+        html += '</div>';
+        html += '<div class="box-footer">';
+        html += '<div class="btn btn-primary" onclick="dashboard_filter()">Filter</button>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</section>';
+
+        // list dashboard
+        for(i in dashboards)
+        {
+            var dashboard = dashboards[i];
+            var bank_loans = dashboard.bank_loans;
+
+            if(bank_loans.length == 0)
+            {
+                continue;
+            }
+
+            html += '<section class="content">';
+            html += '<div class="row">';
+            html += '<div class="col-xs-12">';
+            html += '<div class="box box-primary">';
+            html += '<div class="box-header">';
+            html += '<h3 class="box-title">' + dashboard.name + '</h3>';
+            html += '</div>';
+            html += '<div class="box-body table-responsive no-padding">';
+            html += '<table class="table table-hover">';
+            html += '<tr>';
+            html += '<th>Bank</th>';
+            html += '<th>Minimum Loan</th>';
+            html += '<th>Loan</th>';
+            html += '<th>Lock Period</th>';
+            html += '<th>Year</th>';
+            html += '<th>Rate</th>';
+            html += '<th>Interest Rate</th>';
+            html += '</tr>';
+
+            for(i in bank_loans)
+            {
+                var bank_loan = bank_loans[i];
+
+                html += '<tr>';
+                html += '<td>' + bank_loan.bank_name + '</td>';
+                html += '<td>' + bank_loan.minimum_loan + '</td>';
+                html += '<td>' + bank_loan.name + '</td>';
+                html += '<td>' + bank_loan.lock_period + '</td>';
+
+                var bank_rates = bank_loan.bank_rates;
+                for(j in bank_rates)
+                {
+                    var bank_rate = bank_rates[j];
+
+                    if(j != 0)
+                    {
+                        html += '<tr>';
+                        html += '<td colspan="4"></td>';
+                    }
+                    html += '<td>' + bank_rate.year + '</td>';
+                    html += '<td>' + bank_rate.formula + '</td>';
+                    html += '<td>' + bank_rate.interest_rate + '</td>';
+                    html += '</tr>';
+                }
+
+                if(bank_rates.length == 0)
+                {
+                    html += '<td></td>';
+                    html += '<td></td>';
+                    html += '<td></td>';
+                    html += '</tr>';
+                }
+            }
+            html += '</table>';
+            html += '</div>';
+            html += '</div>';
+            html += '</div>';
+            html += '</div>';
+            html += '</section>';
+        }
+        $('#content').html(html);
+        
+        var options = {};
+        options.minimumResultsForSearch = -1;
+        $('.select2').select2(options);
+	}
+    $.ajax(ajax);
+}
+
+function login_display()
+{
+    var html = '';
+    html += '<div class="login-box">';
+    html += '<div class="login-logo">';
+    html += '<img src="' + app_url + '/admin_assets/logo.jpg" style="width: 100%;">';
+    html += '</div>';
+    html += '<div class="login-box-body">';
+    html += '<p class="login-box-msg">Admin Login</p>';
+    html += '<div class="form-group has-feedback">';
+    html += '<input id="email" type="email" class="form-control" placeholder="Email" onkeyup="login_onkeyup(event, \'email\')">';
+    html += '<span class="glyphicon glyphicon-envelope form-control-feedback"></span>';
+    html += '</div>';
+    html += '<div class="form-group has-feedback">';
+    html += '<input id="password" type="password" class="form-control" placeholder="Password" onkeyup="login_onkeyup(event, \'password\')">';
+    html += '<span class="glyphicon glyphicon-lock form-control-feedback"></span>';
+    html += '</div>';
+    html += '<div class="row">';
+    html += '<div class="col-xs-8">';
+    html += '</div>';
+    html += '<div class="col-xs-4">';
+    html += '<div class="btn btn-primary btn-block btn-flat" onclick="login_submit()">Sign In</div>';
+    html += '</div>';
+    html += '</div>';
+    html += '<div id="result"></div>';
+    html += '</div>';
+    html += '</div>';
+
+    $('#app').html(html);
+}
+
+function login_onkeyup(event, position)
+{
+    if(event.keyCode == 13)
+    {
+        if(position == 'email')
+        {
+            $('#password').focus();
+            return;
+        }
+
+        login_submit();
+    }
+}
+
+function login_submit()
+{
+    $('#result').html('<div class="text-light-blue">Please wait...</div>');
+    loading_show();
+
+    var data = {};
+    data.email = $('#email').val();
+    data.password = $('#password').val();
+    data.device_id = device_id;
+    data.device_type = 'website';
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/login';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        var message = response.message;
+
+		if(error == 1)
+		{
+			$('#result').html('<div class="text-red">' + message + '</div>');
+			return;
+		}
+        
+        var admin = response.admin;
+        api_token = admin.api_token;
+        
+        $('#result').html('<div class="text-green">' + message + '</div>');
+        initialize_display();
+        dashboard_index();
+	}
+    $.ajax(ajax);
+}
+
+function logout()
+{
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/logout';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+        login_display();
+	}
+    $.ajax(ajax);
+}
+
+function package_index()
+{
+    app_data = {};
+    app_data.page = 1;
+    app_data.sort = 'name';
+    app_data.direction = 'asc';
+    app_data.filter_name = '';
+    package_list();
+}
+
+function package_list()
+{
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.page = app_data.page;
+    data.sort = app_data.sort;
+    data.direction = app_data.direction;
+    data.filter_name = app_data.filter_name;
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/package/listing';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+
+        var packages = response.packages;
+        var total_pages = response.total_pages;
+        var current_page = response.current_page;
+        var html = '';
+
+        // header
+        html += '<section class="content-header">';
+        html += '<h1>';
+        html += 'Package Management';
+        html += '<small>Listing of all Packages</small>';
+        html += '</h1>';
+        html += '</section>';
+
+        // filter packages
+        html += '<section class="content">';
+        html += '<div class="row">';
+        html += '<div class="col-md-12">';
+        html += '<div class="box box-primary">';
+        html += '<div class="box-header with-border">';
+        html += '<h3 class="box-title">Filters</h3>';
+        html += '</div>';
+        html += '<div class="box-body">';
+        html += '<div class="form-group">';
+        html += '<label>Package Name</label>';
+        html += '<input id="filter_name" type="text" class="form-control" value="' + app_data.filter_name + '">';
+        html += '</div>';
+        html += '</div>';
+        html += '<div class="box-footer">';
+        html += '<div class="btn btn-primary" onclick="package_filter()">Filter</button>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</section>';
+
+        // create packages
+        html += '<div class="row">';
+        html += '<div class="col-md-12">';
+        html += '<div class="width15"></div>';
+        html += '<div class="btn btn-success" onclick="package_create()">Create Package</div>';
+        html += '</div>';
+        html += '</div>';
+
+        // list packages
+        html += '<section class="content">';
+        html += '<div class="row">';
+        html += '<div class="col-xs-12">';
+        html += '<div class="box box-primary">';
+        html += '<div class="box-header">';
+        html += '<h3 class="box-title">Package List</h3>';
+        html += '</div>';
+        html += '<div class="box-body table-responsive no-padding">';
+        html += '<table class="table table-hover">';
+        html += '<tr>';
+        html += '<th role="button" onclick="package_sorting(\'name\')">Name</th>';
+        html += '<th>Actions</th>';
+        html += '</tr>';
+        for(i in packages)
+        {
+            var package = packages[i];
+
+            html += '<tr>';
+            html += '<td>' + package.name + '</td>';
+            html += '<td>';
+            html += '<div class="btn btn-primary" onclick="package_edit(\'' + package.id + '\')"><i class="fa fa-edit"></i></div>';
+            html += '<div class="width5"></div>';
+            html += '<div class="btn btn-danger" onclick="package_remove(\'' + package.id + '\')"><i class="fa fa-trash"></i></div>';
+            html += '</td>';
+            html += '</tr>';
+        }
+        html += '</table>';
+        html += '</div>';
+        html += '<div class="box-footer clearfix">';
+        html += '<ul class="pagination pagination-sm no-margin pull-right">';
+        for(var i = 1; i <= total_pages; i++)
+        {
+            var html_page = '<a href="#" onclick="package_paging(' + i + ')">' + i + '</a>';
+            if(i == current_page)
+            {
+                html_page = '<li><span>' + i + '</span></li>';
+            }
+            html += '<li>' + html_page + '</li>';
+        }
+        html += '</ul>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</section>';
+        $('#content').html(html);
+	}
+    $.ajax(ajax);
+}
+
+function package_filter()
+{
+    app_data.filter_name = $('#filter_name').val();
+    app_data.page = 1;
+    package_list();
+}
+
+function package_paging(page)
+{
+    app_data.page = page;
+    package_list();
+}
+
+function package_sorting(sort)
+{
+    if(sort == app_data.sort)
+    {
+        if(app_data.direction == 'asc')
+        {
+            app_data.direction = 'desc';
+        }
+        else
+        {
+            app_data.direction = 'asc';
+        }
+    }
+    if(sort != app_data.sort)
+    {
+        app_data.sort = sort;
+        app_data.direction = 'asc';
+    }
+    package_list();
+}
+
+function package_create()
+{
+    var html = '';
+
+    // start
+    html += '<section class="content">';
+    html += '<div class="row">';
+    html += '<div class="col-md-12">';
+    html += '<div class="box box-primary">';
+    html += '<div class="box-header with-border">';
+    html += '<h3 class="box-title">Add Package</h3>';
+    html += '</div>';
+    html += '<div class="box-body">';
+
+    // name
+    html += '<div class="form-group">';
+    html += '<label>Package Name</label>';
+    html += '<input id="name" type="text" class="form-control">';
+    html += '</div>';
+
+    // end
+    html += '</div>';
+    html += '<div class="box-footer">';
+    html += '<div class="btn btn-success" onclick="package_add()">Add Package</button>';
+    html += '</div>';
+    html += '<div id="result"></div>';
+    html += '</div>';
+    html += '</div>';
+    html += '</div>';
+    html += '</section>';
+
+    $('#content').html(html);
+}
+
+function package_add()
+{
+    $('#result').html('<span class="text-light-blue">Please wait...</span>');
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.name = $('#name').val();
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/package/add';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        var message = response.message;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+
+        if(error != 0)
+        {
+            $('#result').html('<span class="text-red">' + message + '</span>');
+            return;
+        }
+
+        $('#result').html('<span class="text-green">' + message + '</span>');
+        package_list();
+	}
+    $.ajax(ajax);
+}
+
+function package_edit(package_id)
+{
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.package_id = package_id;
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/package/edit';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        var message = response.message;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+		
+		if(error != 0)
+		{
+			$('#content').html(message);
+			return;
+		}
+		
+        var package = response.package;
+        var html = '';
+
+        // start
+        html += '<section class="content">';
+        html += '<div class="row">';
+        html += '<div class="col-md-12">';
+        html += '<div class="box box-primary">';
+        html += '<div class="box-header with-border">';
+        html += '<h3 class="box-title">Edit Package</h3>';
+        html += '</div>';
+        html += '<div class="box-body">';
+
+        // id
+        html += '<input id="package_id" type="hidden" value="' + package.id + '">';
+
+        // name
+        html += '<div class="form-group">';
+        html += '<label>Package Name</label>';
+        html += '<input id="name" type="text" class="form-control" value="' + package.name + '">';
+        html += '</div>';
+
+        // end
+        html += '</div>';
+        html += '<div class="box-footer">';
+        html += '<div class="btn btn-primary" onclick="package_update()">Update Package</button>';
+        html += '</div>';
+        html += '<div id="result"></div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</section>';
+
+        $('#content').html(html);
+	}
+    $.ajax(ajax);
+}
+
+function package_update()
+{
+    $('#result').html('<span class="text-light-blue">Please wait...</span>');
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.package_id = $('#package_id').val();
+    data.name = $('#name').val();
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/package/update';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        var message = response.message;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+		
+		if(error == 1)
+		{
+			$('#result').html('<span class="text-red">' + message + '</span>');
+			return;
+		}
+		
+        $('#result').html('<span class="text-green">' + message + '</span>');
+        package_list();
+	}
+    $.ajax(ajax);
+}
+
+function package_remove(package_id)
+{
+    var html = '';
+    html += '<div class="box box-danger">';
+    html += '<div class="box-header with-border">';
+    html += '<h3 class="box-title">Click Confirm to Delete</h3>';
+    html += '</div>';
+    html += '<div class="box-body">';
+    html += '<div class="btn btn-secondary" onclick="popup_hide()">Cancel</div>';
+    html += '<div class="width5"></div>';
+    html += '<div class="btn btn-danger" onclick="package_destroy(\'' + package_id + '\')">Confirm</div>';
+    html += '<div id="result"></div>';
+    html += '</div>';
+    html += '</div>';
+    popup_show(html);
+}
+
+function package_destroy(package_id)
+{
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.package_id = package_id;
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/package/destroy';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        var message = response.message;
+        
+        if(error == 99)
+        {
+            window.location.href = login_url;
+            return;
+        }
+		
+		if(error == 1)
+		{
+			$('#result').html('<span class="text-red">' + message + '</span>');
+			return;
+		}
+		
+        $('#result').html('<span class="text-green">' + message + '</span>');
+
+        popup_hide();
+        package_list();
+	}
+    $.ajax(ajax);
+}
+
+function rate_index()
+{
+    app_data = {};
+    app_data.page = 1;
+    app_data.sort = 'name';
+    app_data.direction = 'asc';
+    app_data.filter_name = '';
+    rate_list();
+}
+
+function rate_list()
+{
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.page = app_data.page;
+    data.sort = app_data.sort;
+    data.direction = app_data.direction;
+    data.filter_name = app_data.filter_name;
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/rate/listing';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+
+        var rates = response.rates;
+        var total_pages = response.total_pages;
+        var current_page = response.current_page;
+        var html = '';
+
+        // header
+        html += '<section class="content-header">';
+        html += '<h1>';
+        html += 'Rate Management';
+        html += '<small>Listing of all Rates</small>';
+        html += '</h1>';
+        html += '</section>';
+
+        // filter rates
+        html += '<section class="content">';
+        html += '<div class="row">';
+        html += '<div class="col-md-12">';
+        html += '<div class="box box-primary">';
+        html += '<div class="box-header with-border">';
+        html += '<h3 class="box-title">Filters</h3>';
+        html += '</div>';
+        html += '<div class="box-body">';
+        html += '<div class="form-group">';
+        html += '<label>Rate Name</label>';
+        html += '<input id="filter_name" type="text" class="form-control" value="' + app_data.filter_name + '">';
+        html += '</div>';
+        html += '</div>';
+        html += '<div class="box-footer">';
+        html += '<div class="btn btn-primary" onclick="rate_filter()">Filter</button>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</section>';
+
+        // create rates
+        html += '<div class="row">';
+        html += '<div class="col-md-12">';
+        html += '<div class="width15"></div>';
+        html += '<div class="btn btn-success" onclick="rate_create()">Create Rate</div>';
+        html += '</div>';
+        html += '</div>';
+
+        // list rates
+        html += '<section class="content">';
+        html += '<div class="row">';
+        html += '<div class="col-xs-12">';
+        html += '<div class="box box-primary">';
+        html += '<div class="box-header">';
+        html += '<h3 class="box-title">Rate List</h3>';
+        html += '</div>';
+        html += '<div class="box-body table-responsive no-padding">';
+        html += '<table class="table table-hover">';
+        html += '<tr>';
+        html += '<th role="button" onclick="rate_sorting(\'name\')">Name</th>';
+        html += '<th role="button" onclick="rate_sorting(\'interest\')">Interest</th>';
+        html += '<th>Actions</th>';
+        html += '</tr>';
+        for(i in rates)
+        {
+            var rate = rates[i];
+
+            html += '<tr>';
+            html += '<td>' + rate.name + '</td>';
+            html += '<td>' + rate.interest + '</td>';
+            html += '<td>';
+            html += '<div class="btn btn-primary" onclick="rate_edit(\'' + rate.id + '\')"><i class="fa fa-edit"></i></div>';
+            html += '<div class="width5"></div>';
+            html += '<div class="btn btn-danger" onclick="rate_remove(\'' + rate.id + '\')"><i class="fa fa-trash"></i></div>';
+            html += '</td>';
+            html += '</tr>';
+        }
+        html += '</table>';
+        html += '</div>';
+        html += '<div class="box-footer clearfix">';
+        html += '<ul class="pagination pagination-sm no-margin pull-right">';
+        for(var i = 1; i <= total_pages; i++)
+        {
+            html += '<li onclick="rate_paging(' + i + ')"><a href="#">' + i + '</a></li>';
+        }
+        html += '</ul>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</section>';
+        $('#content').html(html);
+	}
+    $.ajax(ajax);
+}
+
+function rate_filter()
+{
+    app_data.filter_name = $('#filter_name').val();
+    app_data.page = 1;
+    rate_list();
+}
+
+function rate_paging(page)
+{
+    app_data.page = page;
+    rate_list();
+}
+
+function rate_sorting(sort)
+{
+    if(sort == app_data.sort)
+    {
+        if(app_data.direction == 'asc')
+        {
+            app_data.direction = 'desc';
+        }
+        else
+        {
+            app_data.direction = 'asc';
+        }
+    }
+    if(sort != app_data.sort)
+    {
+        app_data.sort = sort;
+        app_data.direction = 'asc';
+    }
+    rate_list();
+}
+
+function rate_create()
+{
+    var html = '';
+
+    // start
+    html += '<section class="content">';
+    html += '<div class="row">';
+    html += '<div class="col-md-12">';
+    html += '<div class="box box-primary">';
+    html += '<div class="box-header with-border">';
+    html += '<h3 class="box-title">Add Rate</h3>';
+    html += '</div>';
+    html += '<div class="box-body">';
+
+    // name
+    html += '<div class="form-group">';
+    html += '<label>Rate Name</label>';
+    html += '<input id="name" type="text" class="form-control">';
+    html += '</div>';
+
+    // interest
+    html += '<div class="form-group">';
+    html += '<label>Interest</label>';
+    html += '<input id="interest" type="text" class="form-control">';
+    html += '</div>';
+
+    // end
+    html += '</div>';
+    html += '<div class="box-footer">';
+    html += '<div class="btn btn-success" onclick="rate_add()">Add Rate</button>';
+    html += '</div>';
+    html += '<div id="result"></div>';
+    html += '</div>';
+    html += '</div>';
+    html += '</div>';
+    html += '</section>';
+
+    $('#content').html(html);
+}
+
+function rate_add()
+{
+    $('#result').html('<span class="text-light-blue">Please wait...</span>');
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.bank_id = $('#bank_id').val();
+    data.name = $('#name').val();
+    data.interest = $('#interest').val();
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/rate/add';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        var message = response.message;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+
+        if(error != 0)
+        {
+            $('#result').html('<span class="text-red">' + message + '</span>');
+            return;
+        }
+        $('#result').html('<span class="text-green">' + message + '</span>');
+        rate_list();
+	}
+    $.ajax(ajax);
+}
+
+function rate_edit(rate_id)
+{
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.rate_id = rate_id;
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/rate/edit';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        var message = response.message;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+		
+		if(error != 0)
+		{
+			$('#content').html(message);
+			return;
+		}
+		
+        var banks = response.banks;
+        var rate = response.rate;
+        var html = '';
+
+        // start
+        html += '<section class="content">';
+        html += '<div class="row">';
+        html += '<div class="col-md-12">';
+        html += '<div class="box box-primary">';
+        html += '<div class="box-header with-border">';
+        html += '<h3 class="box-title">Edit Rate</h3>';
+        html += '</div>';
+        html += '<div class="box-body">';
+
+        // id
+        html += '<input id="rate_id" type="hidden" value="' + rate.id + '">';
+
+        // name
+        html += '<div class="form-group">';
+        html += '<label>Rate Name</label>';
+        html += '<input id="name" type="text" class="form-control" value="' + rate.name + '">';
+        html += '</div>';
+
+        // interest
+        html += '<div class="form-group">';
+        html += '<label>Interest</label>';
+        html += '<input id="interest" type="text" class="form-control" value="' + rate.interest + '">';
+        html += '</div>';
+
+        // end
+        html += '</div>';
+        html += '<div class="box-footer">';
+        html += '<div class="btn btn-primary" onclick="rate_update()">Update Rate</button>';
+        html += '</div>';
+        html += '<div id="result"></div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</section>';
+
+        $('#content').html(html);
+	}
+    $.ajax(ajax);
+}
+
+function rate_update()
+{
+    $('#result').html('<span class="text-light-blue">Please wait...</span>');
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.rate_id = $('#rate_id').val();
+    data.name = $('#name').val();
+    data.interest = $('#interest').val();
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/rate/update';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        var message = response.message;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+		
+		if(error == 1)
+		{
+			$('#result').html('<span class="text-red">' + message + '</span>');
+			return;
+		}
+		
+        $('#result').html('<span class="text-green">' + message + '</span>');
+        rate_list();
+	}
+    $.ajax(ajax);
+}
+
+function rate_remove(rate_id)
+{
+    var html = '';
+    html += '<div class="box box-danger">';
+    html += '<div class="box-header with-border">';
+    html += '<h3 class="box-title">Click Confirm to Delete</h3>';
+    html += '</div>';
+    html += '<div class="box-body">';
+    html += '<div class="btn btn-secondary" onclick="popup_hide()">Cancel</div>';
+    html += '<div class="width5"></div>';
+    html += '<div class="btn btn-danger" onclick="rate_destroy(\'' + rate_id + '\')">Confirm</div>';
+    html += '<div id="result"></div>';
+    html += '</div>';
+    html += '</div>';
+    popup_show(html);
+}
+
+function rate_destroy(rate_id)
+{
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.rate_id = rate_id;
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/rate/destroy';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        var message = response.message;
+        
+        if(error == 99)
+        {
+            window.location.href = login_url;
+            return;
+        }
+		
+		if(error == 1)
+		{
+			$('#result').html('<span class="text-red">' + message + '</span>');
+			return;
+		}
+		
+        $('#result').html('<span class="text-green">' + message + '</span>');
+
+        popup_hide();
+        rate_list();
 	}
     $.ajax(ajax);
 }

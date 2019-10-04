@@ -48,6 +48,6 @@ var api_token = "{{ $api_token }}";
 var device_id = "{{ $device_id }}";
 var app_data = {};
 </script>
-<script src="{{ $app_url }}/admin_assets/admin.js"></script>
+<script src="{{ $app_url }}/admin_assets/admin.js?{{ time() }}"></script>
 </body>
 </html>

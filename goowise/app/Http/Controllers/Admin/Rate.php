@@ -19,7 +19,7 @@ class Rate extends Controller
         $filter_name = $request->get('filter_name');
         $paginate = 20;
         
-        \Log::info('Admin '.$api_token.' list rate page '.$page);
+        \Log::info('admin '.$api_token.' list rate page '.$page);
 
         // validate api_token
         $response = $this->check_admin($api_token);
@@ -106,7 +106,7 @@ class Rate extends Controller
         $name = $request->get('name');
         $interest = $request->get('interest');
 
-        \Log::info('Admin '.$api_token.' add rate');
+        \Log::info('admin '.$api_token.' add rate');
 
         // validate api_token
         $response = $this->check_admin($api_token);
@@ -155,7 +155,7 @@ class Rate extends Controller
         $api_token = $request->get('api_token');
         $rate_id = $request->get('rate_id');
 
-        \Log::info('Admin '.$api_token.' edit rate '.$rate_id);
+        \Log::info('admin '.$api_token.' edit rate '.$rate_id);
 
         // validate api_token
         $response = $this->check_admin($api_token);
@@ -190,7 +190,7 @@ class Rate extends Controller
         $name = $request->get('name');
         $interest = $request->get('interest');
 
-        \Log::info('Admin '.$api_token.' update rate '.$rate_id);
+        \Log::info('admin '.$api_token.' update rate '.$rate_id);
 
         // validate api_token
         $response = $this->check_admin($api_token);
@@ -237,7 +237,7 @@ class Rate extends Controller
         $api_token = $request->get('api_token');
         $rate_id = $request->get('rate_id');
 
-        \Log::info('Admin '.$api_token.' destroy rate '.$rate_id);
+        \Log::info('admin '.$api_token.' destroy rate '.$rate_id);
 
         // validate api_token
         $response = $this->check_admin($api_token);

@@ -19,7 +19,7 @@ class BuildingType extends Controller
         $filter_name = $request->get('filter_name');
         $paginate = 10;
 
-        \Log::info('Admin '.$api_token.' list building_type page '.$page);
+        \Log::info('admin '.$api_token.' list building_type page '.$page);
 
         // validate api_token
         $response = $this->check_admin($api_token);
@@ -104,7 +104,7 @@ class BuildingType extends Controller
         $api_token = $request->get('api_token');
         $name = $request->get('name');
 
-        \Log::info('Admin '.$api_token.' add building_type');
+        \Log::info('admin '.$api_token.' add building_type');
 
         // validate api_token
         $response = $this->check_admin($api_token);
@@ -144,7 +144,7 @@ class BuildingType extends Controller
         $api_token = $request->get('api_token');
         $building_type_id = $request->get('building_type_id');
 
-        \Log::info('Admin '.$api_token.' edit building_type '.$building_type_id);
+        \Log::info('admin '.$api_token.' edit building_type '.$building_type_id);
 
         // validate api_token
         $response = $this->check_admin($api_token);
@@ -177,7 +177,7 @@ class BuildingType extends Controller
         $building_type_id = $request->get('building_type_id');
         $name = $request->get('name');
 
-        \Log::info('Admin '.$api_token.' update building_type '.$building_type_id);
+        \Log::info('admin '.$api_token.' update building_type '.$building_type_id);
 
         // validate api_token
         $response = $this->check_admin($api_token);
@@ -214,7 +214,7 @@ class BuildingType extends Controller
         $api_token = $request->get('api_token');
         $building_type_id = $request->get('building_type_id');
 
-        \Log::info('Admin '.$api_token.' destroy building_type '.$building_type_id);
+        \Log::info('admin '.$api_token.' destroy building_type '.$building_type_id);
 
         // validate api_token
         $response = $this->check_admin($api_token);

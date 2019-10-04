@@ -27,7 +27,7 @@ class Bank extends Controller
         $filter_name = $request->get('filter_name');
         $paginate = 10;
 
-        \Log::info('Admin '.$api_token.' list bank page '.$page);
+        \Log::info('admin '.$api_token.' list bank page '.$page);
 
         // validate api_token
         $response = $this->check_admin($api_token);
@@ -108,7 +108,7 @@ class Bank extends Controller
         $api_token = $request->get('api_token');
         $name = $request->get('name');
 
-        \Log::info('Admin '.$api_token.' add bank');
+        \Log::info('admin '.$api_token.' add bank');
 
         // validate api_token
         $response = $this->check_admin($api_token);
@@ -147,7 +147,7 @@ class Bank extends Controller
         $api_token = $request->get('api_token');
         $bank_id = $request->get('bank_id');
 
-        \Log::info('Admin '.$api_token.' edit bank '.$bank_id);
+        \Log::info('admin '.$api_token.' edit bank '.$bank_id);
 
         // validate api_token
         $response = $this->check_admin($api_token);
@@ -177,7 +177,7 @@ class Bank extends Controller
         $bank_id = $request->get('bank_id');
         $name = $request->get('name');
 
-        \Log::info('Admin '.$api_token.' update bank '.$bank_id);
+        \Log::info('admin '.$api_token.' update bank '.$bank_id);
 
         // validate api_token
         $response = $this->check_admin($api_token);
@@ -214,7 +214,7 @@ class Bank extends Controller
         $api_token = $request->get('api_token');
         $bank_id = $request->get('bank_id');
 
-        \Log::info('Admin '.$api_token.' destroy bank '.$bank_id);
+        \Log::info('admin '.$api_token.' destroy bank '.$bank_id);
 
         // validate api_token
         $response = $this->check_admin($api_token);

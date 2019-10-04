@@ -19,7 +19,7 @@ class BankLoan extends Controller
         $filter_name = $request->get('filter_name');
         $paginate = 10;
 
-        \Log::info('Admin '.$api_token.' list bank_loan page '.$page);
+        \Log::info('admin '.$api_token.' list bank_loan page '.$page);
 
         // validate api_token
         $response = $this->check_admin($api_token);
@@ -124,7 +124,7 @@ class BankLoan extends Controller
         // set variables
         $api_token = $request->get('api_token');
 
-        \Log::info('Admin '.$api_token.' create bank_loan');
+        \Log::info('admin '.$api_token.' create bank_loan');
 
         // validate api_token
         $response = $this->check_admin($api_token);
@@ -184,7 +184,7 @@ class BankLoan extends Controller
         $building_types = $request->get('building_types');
         $new_bank_rates = $request->get('new_bank_rates');
 
-        \Log::info('Admin '.$api_token.' add bank_loan');
+        \Log::info('admin '.$api_token.' add bank_loan');
 
         // validate api_token
         $response = $this->check_admin($api_token);
@@ -289,7 +289,7 @@ class BankLoan extends Controller
         $api_token = $request->get('api_token');
         $bank_loan_id = $request->get('bank_loan_id');
 
-        \Log::info('Admin '.$api_token.' edit bank_loan '.$bank_loan_id);
+        \Log::info('admin '.$api_token.' edit bank_loan '.$bank_loan_id);
 
         // validate api_token
         $response = $this->check_admin($api_token);
@@ -388,7 +388,7 @@ class BankLoan extends Controller
         $edit_bank_rates = $request->get('edit_bank_rates');
         $new_bank_rates = $request->get('new_bank_rates');
 
-        \Log::info('Admin '.$api_token.' update bank_loan '.$bank_loan_id);
+        \Log::info('admin '.$api_token.' update bank_loan '.$bank_loan_id);
 
         // validate api_token
         $response = $this->check_admin($api_token);
@@ -538,7 +538,7 @@ class BankLoan extends Controller
         $api_token = $request->get('api_token');
         $bank_loan_id = $request->get('bank_loan_id');
 
-        \Log::info('Admin '.$api_token.' destroy bank_loan '.$bank_loan_id);
+        \Log::info('admin '.$api_token.' destroy bank_loan '.$bank_loan_id);
 
         // validate api_token
         $response = $this->check_admin($api_token);

@@ -58,7 +58,7 @@ abstract class Controller extends BaseController
         // if admin_token not found
         if($admin_token == null)
         {
-            \Log::info('Admin '.$api_token.' token not found');
+            \Log::info('admin '.$api_token.' token not found');
 
             $response = array();
             $response['error'] = 99;
@@ -76,7 +76,7 @@ abstract class Controller extends BaseController
         // if admin not found
         if($admin == null)
         {
-            \Log::info('Admin '.$api_token.' not found');
+            \Log::info('admin '.$api_token.' not found');
 
             $response = array();
             $response['error'] = 99;
@@ -90,6 +90,53 @@ abstract class Controller extends BaseController
         $response['message'] = 'Success';
         $response['admin_token'] = $admin_token;
         $response['admin'] = $admin;
+        return $response;
+    }
+
+    public function check_advisor($api_token)
+    {
+        // get advisor_token
+        $query = \DB::table('advisor_tokens');
+        $query->select('advisor_id');
+        $query->where('api_token', $api_token);
+        $query->where('deleted_at', 0);
+        $advisor_token = $query->first();
+
+        // if advisor_token not found
+        if($advisor_token == null)
+        {
+            \Log::info('advisor '.$api_token.' token not found');
+
+            $response = array();
+            $response['error'] = 99;
+            $response['message'] = 'Advisor token not found';
+            return $response;
+        }
+
+        // get advisor
+        $query = \DB::table('advisors');
+        $query->select('id', 'firstname', 'email', 'last_visit');
+        $query->where('id', $advisor_token->advisor_id);
+        $query->where('deleted_at', 0);
+        $advisor = $query->first();
+
+        // if advisor not found
+        if($advisor == null)
+        {
+            \Log::info('advisor '.$api_token.' not found');
+
+            $response = array();
+            $response['error'] = 99;
+            $response['message'] = 'Advisor not found';
+            return $response;
+        }
+
+        // success
+        $response = array();
+        $response['error'] = 0;
+        $response['message'] = 'Success';
+        $response['advisor_token'] = $advisor_token;
+        $response['advisor'] = $advisor;
         return $response;
     }
 

@@ -15,7 +15,7 @@ class BankRate extends Controller
         $api_token = $request->get('api_token');
         $bank_rate_id = $request->get('bank_rate_id');
 
-        \Log::info('Admin '.$api_token.' destroy bank_rate '.$bank_rate_id);
+        \Log::info('admin '.$api_token.' destroy bank_rate '.$bank_rate_id);
 
         // validate api_token
         $response = $this->check_admin($api_token);
