@@ -171,83 +171,17 @@ class Home extends Controller
 
     public function migration()
     {
-        Schema::create('advisors', function (Blueprint $table)
+        Schema::create('headlines', function (Blueprint $table)
         {
             $table->string('id', 20);
-            $table->string('bank_id', 20);
-            $table->string('nric', 15);
-            $table->string('firstname', 50);
-            $table->string('lastname', 50);
-            $table->string('mobile', 15);
-            $table->string('email', 70);
-            $table->string('password');
-            $table->string('bank_account', 20);
-            $table->string('address');
-            $table->string('postal_code', 10);
-            $table->string('last_visit');
-            $table->integer('created_at');
-            $table->integer('updated_at');
-            $table->integer('deleted_at');
-
-            $table->primary('id');
-            $table->index('firstname');
-            $table->index('lastname');
-            $table->index('mobile');
-            $table->index('email');
-            $table->index('deleted_at');
-        });
-
-        Schema::create('advisor_tokens', function (Blueprint $table)
-        {
-            $table->string('id', 20);
-            $table->string('advisor_id', 20);
-            $table->string('device_id');
-            $table->string('device_type', 10);
-            $table->string('ip_address', 25);
-            $table->string('user_agent');
-            $table->string('api_token', 32);
-            $table->integer('created_at');
-            $table->integer('updated_at');
-            $table->integer('deleted_at');
-
-            $table->primary('id');
-            $table->index('advisor_id');
-            $table->index('device_id');
-            $table->index('api_token');
-            $table->index('deleted_at');
-        });
-
-        Schema::create('clients', function (Blueprint $table)
-        {
-            $table->string('id', 20);
-            $table->string('advisor_id', 20);
-            $table->string('bank_id', 20);
-            $table->string('owner_name', 50);
-            $table->string('owner_nric', 15);
-            $table->string('owner_mobile', 15);
-            $table->string('owner_email', 70);
-            $table->string('joint_name', 50);
-            $table->string('joint_nric', 15);
-            $table->string('joint_mobile', 15);
-            $table->string('joint_email', 70);
-            $table->string('property_address');
-            $table->string('postal_code', 10);
-            $table->integer('loan_amount');
+            $table->string('admin_id', 20);
+            $table->string('title', 50);
+            $table->string('message');
             $table->integer('created_at');
             $table->integer('updated_at');
             $table->integer('deleted_at');
             
             $table->primary('id');
-            $table->index('advisor_id');
-            $table->index('bank_id');
-            $table->index('owner_name');
-            $table->index('owner_nric');
-            $table->index('owner_mobile');
-            $table->index('owner_email');
-            $table->index('joint_name');
-            $table->index('joint_nric');
-            $table->index('joint_mobile');
-            $table->index('joint_email');
             $table->index('deleted_at');
         });
 
@@ -256,9 +190,7 @@ class Home extends Controller
 
     public function rollback()
     {
-        Schema::drop('advisors');
-        Schema::drop('advisor_tokens');
-        Schema::drop('clients');
+        Schema::drop('headlines');
 
         return 'rollback done';
     }
@@ -276,7 +208,10 @@ class Home extends Controller
         $data['--database'] = 'mysql';
         \Artisan::call('migrate:rollback', $data);
         return 'rollback done';
+    }
 
+    public function old_migrations()
+    {
         Schema::create('users', function (Blueprint $table)
         {
             $table->string('id', 20);
@@ -472,6 +407,89 @@ class Home extends Controller
         $data['deleted_at'] = 0;
         DB::table('admins')->insert($data);
 
+        Schema::create('advisors', function (Blueprint $table)
+        {
+            $table->string('id', 20);
+            $table->string('bank_id', 20);
+            $table->string('nric', 15);
+            $table->string('firstname', 50);
+            $table->string('lastname', 50);
+            $table->string('mobile', 15);
+            $table->string('email', 70);
+            $table->string('password');
+            $table->string('bank_account', 20);
+            $table->string('address');
+            $table->string('postal_code', 10);
+            $table->string('last_visit');
+            $table->integer('created_at');
+            $table->integer('updated_at');
+            $table->integer('deleted_at');
+
+            $table->primary('id');
+            $table->index('firstname');
+            $table->index('lastname');
+            $table->index('mobile');
+            $table->index('email');
+            $table->index('deleted_at');
+        });
+
+        Schema::create('advisor_tokens', function (Blueprint $table)
+        {
+            $table->string('id', 20);
+            $table->string('advisor_id', 20);
+            $table->string('device_id');
+            $table->string('device_type', 10);
+            $table->string('ip_address', 25);
+            $table->string('user_agent');
+            $table->string('api_token', 32);
+            $table->integer('created_at');
+            $table->integer('updated_at');
+            $table->integer('deleted_at');
+
+            $table->primary('id');
+            $table->index('advisor_id');
+            $table->index('device_id');
+            $table->index('api_token');
+            $table->index('deleted_at');
+        });
+
+        Schema::create('clients', function (Blueprint $table)
+        {
+            $table->string('id', 20);
+            $table->string('advisor_id', 20);
+            $table->string('bank_id', 20);
+            $table->string('owner_name', 50);
+            $table->string('owner_nric', 15);
+            $table->string('owner_mobile', 15);
+            $table->string('owner_email', 70);
+            $table->string('joint_name', 50);
+            $table->string('joint_nric', 15);
+            $table->string('joint_mobile', 15);
+            $table->string('joint_email', 70);
+            $table->string('property_address');
+            $table->string('postal_code', 10);
+            $table->integer('loan_amount');
+            $table->integer('created_at');
+            $table->integer('updated_at');
+            $table->integer('deleted_at');
+            
+            $table->primary('id');
+            $table->index('advisor_id');
+            $table->index('bank_id');
+            $table->index('owner_name');
+            $table->index('owner_nric');
+            $table->index('owner_mobile');
+            $table->index('owner_email');
+            $table->index('joint_name');
+            $table->index('joint_nric');
+            $table->index('joint_mobile');
+            $table->index('joint_email');
+            $table->index('deleted_at');
+        });
+    }
+
+    public function old_rollbacks()
+    {
         Schema::drop('packages');
         Schema::drop('banks');
         Schema::drop('building_types');
@@ -482,5 +500,9 @@ class Home extends Controller
         Schema::drop('admins');
         Schema::drop('admin_tokens');
         Schema::drop('users');
+
+        Schema::drop('advisors');
+        Schema::drop('advisor_tokens');
+        Schema::drop('clients');
     }
 }

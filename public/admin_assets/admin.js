@@ -103,6 +103,11 @@ function initialize()
             dashboard_index();
             return;
         }
+        if(last_visit.page == 'headline_listing')
+        {
+            headline_index();
+            return;
+        }
         if(last_visit.page == 'package_listing')
         {
             package_index();
@@ -160,7 +165,7 @@ function initialize_display()
     html += '<li><a href="#" onclick="bank_loan_index()"><i class="fa fa-th"></i> <span>Bank Loan</span></a></li>';
     html += '<li><a href="#" onclick="advisor_index()"><i class="fa fa-user"></i> <span>Advisor</span></a></li>';
     html += '<li><a href="#" onclick="client_index()"><i class="fa fa-users"></i> <span>Client</span></a></li>';
-    html += '<li><a href="#" onclick="testing()"><i class="fa fa-fire"></i> <span>Testing</span></a></li>';
+    html += '<li><a href="#" onclick="headline_index()"><i class="fa fa-fire"></i> <span>Headline</span></a></li>';
     html += '<li><a href="#" onclick="logout()"><i class="fa fa-power-off"></i> <span>Logout</span></a></li>';
     html += '</ul>';
     html += '</section>';
@@ -3343,6 +3348,426 @@ function dashboard_list()
         var options = {};
         options.minimumResultsForSearch = -1;
         $('.select2').select2(options);
+	}
+    $.ajax(ajax);
+}
+
+function headline_index()
+{
+    app_data = {};
+    app_data.page = 1;
+    app_data.sort = 'updated_at';
+    app_data.direction = 'desc';
+    app_data.filter_message = '';
+    headline_list();
+}
+
+function headline_list()
+{
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.page = app_data.page;
+    data.sort = app_data.sort;
+    data.direction = app_data.direction;
+    data.filter_message = app_data.filter_message;
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/headline/listing';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+
+        var headlines = response.headlines;
+        var html = '';
+
+        // header
+        html += '<section class="content-header">';
+        html += '<h1>';
+        html += 'Headline Management';
+        html += '<small>Listing of all headlines</small>';
+        html += '</h1>';
+        html += '</section>';
+
+        // filter headlines
+        html += '<section class="content">';
+        html += '<div class="row">';
+        html += '<div class="col-md-12">';
+        html += '<div class="box box-primary">';
+        html += '<div class="box-header with-border">';
+        html += '<h3 class="box-title">Filters</h3>';
+        html += '</div>';
+        html += '<div class="box-body">';
+        html += '<div class="form-group">';
+        html += '<label>Headline Name</label>';
+        html += '<input id="filter_message" type="text" class="form-control" value="' + app_data.filter_message + '">';
+        html += '</div>';
+        html += '</div>';
+        html += '<div class="box-footer">';
+        html += '<div class="btn btn-primary" onclick="headline_filter()">Filter</button>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</section>';
+
+        // create headlines
+        html += '<div class="row">';
+        html += '<div class="col-md-12">';
+        html += '<div class="width15"></div>';
+        html += '<div class="btn btn-success" onclick="headline_create()">Create Headline</div>';
+        html += '</div>';
+        html += '</div>';
+
+        // list headlines
+        html += '<section class="content">';
+        html += '<div class="row">';
+        html += '<div class="col-xs-12">';
+        html += '<div class="box box-primary">';
+        html += '<div class="box-header">';
+        html += '<h3 class="box-title">Headline List</h3>';
+        html += '</div>';
+        html += '<div class="box-body table-responsive no-padding">';
+        html += '<table class="table table-hover">';
+        html += '<tr>';
+        html += '<th role="button" onclick="headline_sorting(\'updated_at\')">Date Time</th>';
+        html += '<th role="button" onclick="headline_sorting(\'title\')">Title</th>';
+        html += '<th role="button" onclick="headline_sorting(\'message\')">Message</th>';
+        html += '<th>Actions</th>';
+        html += '</tr>';
+        for(i in headlines)
+        {
+            var headline = headlines[i];
+
+            html += '<tr>';
+            html += '<td>' + headline.updated_at + '</td>';
+            html += '<td>' + headline.admin_name + '<br>' + headline.title + '</td>';
+            html += '<td>' + headline.message + '</td>';
+            html += '<td>';
+            html += '<div class="btn btn-primary" onclick="headline_edit(\'' + headline.id + '\')"><i class="fa fa-edit"></i></div>';
+            html += '<div class="width5"></div>';
+            html += '<div class="btn btn-danger" onclick="headline_remove(\'' + headline.id + '\')"><i class="fa fa-trash"></i></div>';
+            html += '</td>';
+            html += '</tr>';
+        }
+        html += '</table>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</section>';
+        $('#content').html(html);
+	}
+    $.ajax(ajax);
+}
+
+function headline_filter()
+{
+    app_data.filter_message = $('#filter_message').val();
+    app_data.page = 1;
+    headline_list();
+}
+
+function headline_paging(page)
+{
+    app_data.page = page;
+    headline_list();
+}
+
+function headline_sorting(sort)
+{
+    if(sort == app_data.sort)
+    {
+        if(app_data.direction == 'asc')
+        {
+            app_data.direction = 'desc';
+        }
+        else
+        {
+            app_data.direction = 'asc';
+        }
+    }
+    if(sort != app_data.sort)
+    {
+        app_data.sort = sort;
+        app_data.direction = 'asc';
+    }
+    headline_list();
+}
+
+function headline_create()
+{
+    var html = '';
+
+    // header
+    html += '<section class="content-header">';
+    html += '<h1>';
+    html += 'Create Headline';
+    html += '<small>add a new headline</small>';
+    html += '</h1>';
+    html += '</section>';
+
+    // create headline
+    html += '<section class="content">';
+    html += '<div class="row">';
+    html += '<div class="col-md-12">';
+    html += '<div class="box box-primary">';
+    html += '<div class="box-header with-border">';
+    html += '<h3 class="box-title">Create Headline</h3>';
+    html += '</div>';
+    html += '<div class="box-body">';
+
+    // title
+    html += '<div class="form-group">';
+    html += '<label>Title</label>';
+    html += '<input id="title" type="text" class="form-control">';
+    html += '</div>';
+
+    // message
+    html += '<div class="form-group">';
+    html += '<label>Message</label>';
+    html += '<textarea id="message" class="form-control" rows="5"></textarea>';
+    html += '</div>';
+
+    html += '</div>';
+    html += '<div class="box-footer">';
+    html += '<div class="btn btn-success" onclick="headline_add()">Create headline</button>';
+    html += '</div>';
+    html += '<div id="result"></div>';
+    html += '</div>';
+    html += '</div>';
+    html += '</div>';
+    html += '</section>';
+    $('#content').html(html);
+}
+
+function headline_add()
+{
+    loading_show();
+    $('#result').html('<span class="text-light-blue">Please wait...</span>');
+
+    var data = {};
+    data.api_token = api_token;
+    data.title = $('#title').val();
+    data.message = $('#message').val();
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/headline/add';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+		var message = response.message;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+
+        if(error != 0)
+        {
+            $('#result').html('<span class="text-red">' + message + '</span>');
+            return;
+        }
+        $('#result').html('<span class="text-green">' + message + '</span>');
+        headline_list();
+	}
+    $.ajax(ajax);
+}
+
+function headline_edit(headline_id)
+{
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.headline_id = headline_id;
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/headline/edit';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        var message = response.message;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+		
+		if(error != 0)
+		{
+			$('#content').html(message);
+			return;
+		}
+        
+        var headline = response.headline;
+        var html = '';
+
+        // start
+        html += '<section class="content">';
+        html += '<div class="row">';
+        html += '<div class="col-md-12">';
+        html += '<div class="box box-primary">';
+        html += '<div class="box-header with-border">';
+        html += '<h3 class="box-title">Edit headline</h3>';
+        html += '</div>';
+        html += '<div class="box-body">';
+
+        // id
+        html += '<input id="headline_id" type="hidden" value="' + headline.id + '">';
+
+        // title
+        html += '<div class="form-group">';
+        html += '<label>Title</label>';
+        html += '<input id="title" type="text" class="form-control" value="' + headline.title + '">';
+        html += '</div>';
+
+        // message
+        html += '<div class="form-group">';
+        html += '<label>Message</label>';
+        html += '<textarea id="message" class="form-control" rows="5">' + headline.message + '</textarea>';
+        html += '</div>';
+
+        // end
+        html += '</div>';
+        html += '<div class="box-footer">';
+        html += '<div class="btn btn-primary" onclick="headline_update()">Update headline</button>';
+        html += '</div>';
+        html += '<div id="result"></div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</section>';
+
+        $('#content').html(html);
+        $('#bank_id').select2();
+	}
+    $.ajax(ajax);
+}
+
+function headline_update()
+{
+    $('#result').html('<span class="text-light-blue">Please wait...</span>');
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.headline_id = $('#headline_id').val();
+    data.title = $('#title').val();
+    data.message = $('#message').val();
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/headline/update';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        var message = response.message;
+        
+        if(error == 99)
+        {
+            login_display();
+            return;
+        }
+		
+		if(error == 1)
+		{
+			$('#result').html('<span class="text-red">' + message + '</span>');
+			return;
+		}
+		
+        $('#result').html('<span class="text-green">' + message + '</span>');
+        headline_list();
+	}
+    $.ajax(ajax);
+}
+
+function headline_remove(headline_id)
+{
+    var html = '';
+    html += '<div class="box box-danger">';
+    html += '<div class="box-header with-border">';
+    html += '<h3 class="box-title">Click Confirm to Delete</h3>';
+    html += '</div>';
+    html += '<div class="box-body">';
+    html += '<div class="btn btn-secondary" onclick="popup_hide()">Cancel</div>';
+    html += '<div class="width5"></div>';
+    html += '<div class="btn btn-danger" onclick="headline_destroy(\'' + headline_id + '\')">Confirm</div>';
+    html += '<div id="result"></div>';
+    html += '</div>';
+    html += '</div>';
+    popup_show(html);
+}
+
+function headline_destroy(headline_id)
+{
+    loading_show();
+
+    var data = {};
+    data.api_token = api_token;
+    data.headline_id = headline_id;
+    data = JSON.stringify(data);
+
+    var ajax = {};
+	ajax.url = app_url + '/admin/headline/destroy';
+	ajax.data = data;
+	ajax.type = 'post';
+	ajax.contentType = 'application/json; charset=utf-8';
+	ajax.processData = false;
+	ajax.success = function(response)
+	{
+        loading_hide();
+		var error = response.error;
+        var message = response.message;
+        
+        if(error == 99)
+        {
+            window.location.href = login_url;
+            return;
+        }
+		
+		if(error == 1)
+		{
+			$('#result').html('<span class="text-red">' + message + '</span>');
+			return;
+		}
+		
+        $('#result').html('<span class="text-green">' + message + '</span>');
+
+        popup_hide();
+        headline_list();
 	}
     $.ajax(ajax);
 }

@@ -1040,10 +1040,28 @@ function dashboard_list()
         var dashboards = response.dashboards;
         var packages = response.packages;
         var banks = response.banks;
+        var headlines = response.headlines;
         var html = '';
 
         // header
         html += '<section class="content-header">';
+
+        // headlines
+        for(var i in headlines)
+        {
+            var headline = headlines[i];
+            html += '<div class="alert alert-success alert-dismissible">';
+            html += '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>';
+            html += '<h4><i class="icon fa fa-check"></i> ' + headline.title + '</h4>';
+            html += '<small>';
+            html += headline.updated_at;
+            html += '</small>';
+            html += '<p>';
+            html += headline.message;
+            html += '</p>';
+            html += '</div>';
+        }
+        
         html += '<h1>';
         html += 'Dashboard';
         html += '<small>Listing of all Bank Rates</small>';

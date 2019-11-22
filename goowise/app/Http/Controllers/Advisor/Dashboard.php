@@ -80,6 +80,27 @@ class Dashboard extends Controller
         $query->orderBy('year');
         $bank_rates = $query->get();
 
+        // get headlines
+        $query = \DB::connection('mysql')->table('headlines');
+        $select = array();
+        $select[] = 'id';
+        $select[] = 'admin_id';
+        $select[] = 'title';
+        $select[] = 'message';
+        $select[] = 'updated_at';
+        $query->where('updated_at', '>', strtotime('-7 days'));
+        $query->where('deleted_at', 0);
+        $query->orderBy('updated_at', 'desc');
+        $headlines = $query->get();
+
+        // modify headlines
+        foreach($headlines as $headline)
+        {
+            $headline->message = nl2br($headline->message);
+            $headline->updated_at = $this->wrap_timezone($headline->updated_at, 8);
+            $headline->updated_at = date('d M Y g:i A', $headline->updated_at);
+        }
+
         // create results
         $result_dashboards = array();
         foreach($packages as $package)
@@ -179,6 +200,7 @@ class Dashboard extends Controller
         $response['dashboards'] = $result_dashboards;
         $response['packages'] = $packages;
         $response['banks'] = $banks;
+        $response['headlines'] = $headlines;
         return $response;
     }
 }

@@ -199,4 +199,9 @@ abstract class Controller extends BaseController
         // return
         return $string;
     }
+
+    function wrap_timezone($timestamp, $timezone)
+    {
+        return $timestamp + ($timezone * 60 * 60);
+    }
 }
